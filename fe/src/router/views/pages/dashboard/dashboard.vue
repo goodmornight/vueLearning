@@ -9,6 +9,7 @@ import Overview from '@components/overview'
 import Member from '@components/member'
 import Task from '@components/task'
 import Chat from '@components/chat'
+import Test from '@src/api/test'
 
 import {
 	revenueAreaChart,
@@ -33,6 +34,11 @@ export default {
 		Member,
 		Task,
 		Chat,
+	},
+	mounted(){
+		console.log(Test.getIp())
+		console.log(Test.getTest())
+		console.log(Test.getTest2())
 	},
 	data() {
 		return {
