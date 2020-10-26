@@ -1,4 +1,4 @@
-import request from '@utils/request';
+import request from '@utils/request'; // 引入封装好的Axios
 
 const test = {    
     // 获取ip    
