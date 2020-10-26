@@ -35,10 +35,6 @@ export default {
 		Task,
 		Chat,
 	},
-	mounted(){
-		console.log(Test.getIp())
-		console.log(Test.getTest())
-	},
 	data() {
 		return {
 			revenueAreaChart: revenueAreaChart,
