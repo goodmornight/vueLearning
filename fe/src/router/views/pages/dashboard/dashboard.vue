@@ -38,7 +38,6 @@ export default {
 	mounted(){
 		console.log(Test.getIp())
 		console.log(Test.getTest())
-		console.log(Test.getTest2())
 	},
 	data() {
 		return {

@@ -4,15 +4,12 @@ import axios from 'axios';
 
 const test = {    
     // 获取ip    
-    getIp () {        
-        return axios.get('https://api.ipify.org/ip');    
+    getIp () {     
+        return request.get(`ip`);
     },    
     // 测试    
     getTest () {        
         return request.get(`api/test`);    
-    },
-    getTest2 () {        
-        return axios.get(`http://127.0.0.1:8080/api/test`);    
     }
 }
 

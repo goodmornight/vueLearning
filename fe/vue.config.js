@@ -33,18 +33,21 @@ module.exports = {
   //       { before: require('./tests/mock-api') }),
   // },
   devServer: {
-    ...(process.env.APP_API_BASE_URL
-      ? // Proxy API endpoints to the production base URL.
-        { proxy: { '/api': { target: process.env.APP_API_BASE_URL } } }
-      : // Proxy API endpoints a local mock API.
-        { before: require('./tests/mock-test-api') }),
-    // before: require('./tests/mock-test-api'),
-    // proxy:{
-    //   '/ip':{
-    //     target:'https://api.ipify.org',
-    //     changeOrigin:true,
-    //     secure: false,
-    //     pathRewrite: {'^/ip' : ''}
-    //   },
+    // ...(process.env.APP_API_BASE_URL
+    //   ? // Proxy API endpoints to the production base URL.
+    //     { proxy: { '/api': { target: process.env.APP_API_BASE_URL } } }
+    //   : // Proxy API endpoints a local mock API.
+    //     { before: require('./tests/mock-test-api') }),
+    // port: 8080,
+    before: require('./tests/mock-test-api'),
+    proxy:{
+      '/ip':{
+        target:'https://api.ipify.org',
+        changeOrigin:true,
+        secure: false,
+        pathRewrite: {'^/ip' : ''}
+      },
+    }
   },
+
 }

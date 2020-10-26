@@ -8,9 +8,6 @@ const service = axios.create({
 service.interceptors.request.use(
   config => {
     // 此处可以设置请求头等信息
-    config.headers['Accept'] = 'application/json'
-    config.headers['Content-Type'] = 'application/json'
-    config.headers['Access-Control-Allow-Origin'] = '*'
     console.log(config)
     return config
   },
