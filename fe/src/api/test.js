@@ -1,5 +1,4 @@
-// import base from './base'; // 导入接口域名列表
-import request from '@utils/request'; // 导入http中创建的axios实例
+import request from '@utils/request';
 
 const test = {    
     // 获取ip    
