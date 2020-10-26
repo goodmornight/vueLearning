@@ -12,7 +12,7 @@ import vco from 'v-click-outside'
 import VueRouter from 'vue-router'
 import VueFeather from 'vue-feather'
 import flatPickr from 'vue-flatpickr-component'
-import VueKeyCloak from '@dsb-norge/vue-keycloak-js'
+// import VueKeyCloak from '@dsb-norge/vue-keycloak-js'
 
 Vue.use(VueFeather)
 Vue.use(flatPickr)
