@@ -444,6 +444,27 @@ const chartsRoutes = [
   },
 ]
 
+// test
+const testRoutes = [
+  {
+    path: '/test',
+    name: 'Test',
+    icon: 'target',
+    component: {
+      render(c) {
+        return c('router-view')
+      },
+    },
+    children: [
+      {
+        path: 'pdf',
+        name: 'PDF',
+        component: () =>
+          lazyLoadView(import('@views/pages/test/pdf')),
+      },
+    ],
+  },
+]
 
 const authProtectedRoutes = [
   ...dashboardRoutes,
@@ -452,7 +473,8 @@ const authProtectedRoutes = [
   ...uiRoutes,
   ...formsRoutes,
   ...chartsRoutes,
-  ...tablesRoutes
+  ...tablesRoutes,
+  ...testRoutes
 ]
 const allRoutes = [...authRoutes, ...authProtectedRoutes, ...errorPagesRoutes]
 
