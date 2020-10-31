@@ -459,9 +459,38 @@ const testRoutes = [
       {
         path: 'pdf',
         name: 'PDF',
-        component: () =>
-          lazyLoadView(import('@views/pages/test/pdf')),
+        // create a container component
+        component: {
+          render(c) {
+            return c('router-view')
+          },
+        },
+        children: [
+          {
+            path: 'vuePdf',
+            name: 'vuePdf',
+            component: () =>
+              lazyLoadView(import('@views/pages/test/pdf')),
+          },
+          {
+            path: 'pdfIframe',
+            name: 'pdfIframe',
+            component: () =>
+              lazyLoadView(import('@views/pages/test/pdfIframe')),
+          },
+          {
+            path: 'pdfJsDist',
+            name: 'pdfJsDist',
+            component: require('@views/pages/test/pdfJsDist').default,
+          },
+          {
+            path: 'highLight',
+            name: 'highLight',
+            component: require('@views/pages/test/highLight').default,
+          },
+        ],
       },
+      
     ],
   },
 ]
