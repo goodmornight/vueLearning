@@ -487,6 +487,16 @@ const testRoutes = [
             path: 'highLight',
             name: 'highLight',
             component: require('@views/pages/test/highLight').default,
+          }, 
+          {
+            path: 'pdfjs',
+            name: 'pdfjs',
+            component: require('@views/pages/test/pdfjs').default,
+          },
+          {
+            path: 'pdfViewer',
+            name: 'pdfViewer',
+            component: require('@views/pages/test/pdfViewer').default,
           },
         ],
       },
