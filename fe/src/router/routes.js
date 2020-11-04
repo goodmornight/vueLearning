@@ -498,6 +498,11 @@ const testRoutes = [
             name: 'pdfViewer',
             component: require('@views/pages/test/pdfViewer').default,
           },
+          {
+            path: 'highLightText',
+            name: 'highLightText',
+            component: require('@views/pages/test/highLightText').default,
+          },
         ],
       },
       

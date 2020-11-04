@@ -143,9 +143,7 @@ export default {
       this.x = x + (width / 2)
       this.y = y + window.scrollY - 10
       this.showTools = true
-      this.selectedText = selection.toString()
-
-      
+      this.selectedText = selection.toString() 
     },
     highLight(){
       console.log('highLight')

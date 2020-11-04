@@ -1,10 +1,12 @@
 <script>
-import workerSrc from '!!file-loader!pdfjs-dist/build/pdf.worker.min.js'
+import workerSrc from '!!file-loader!pdfjs-dist/build/pdf.worker.js'
+
 // import { TextLayerBuilder, EventBus } from 'pdfjs-dist/web/pdf_viewer'
-import { TextLayerBuilder, EventBus, PDFPageView, DefaultTextLayerFactory, DefaultAnnotationLayerFactory } from 'pdfjs-dist/web/pdf_viewer'
+// import { TextLayerBuilder, EventBus, PDFPageView, DefaultTextLayerFactory, DefaultAnnotationLayerFactory } from 'pdfjs-dist/web/pdf_viewer'
 import 'pdfjs-dist/web/pdf_viewer.css'
 
 const pdfjsLib = require(/* webpackChunkName: "pdfjs-dist" */ `pdfjs-dist`)
+const pdfjsViewer = require(/* webpackChunkName: "pdfjs-dist" */ `pdfjs-dist/web/pdf_viewer.js`)
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc
 
 
@@ -31,7 +33,7 @@ export default {
   mounted(){
     this.getWH()
     // this.renderPdf('/1.pdf')
-    this.pageViewer('/1.pdf')
+    this.pageViewer('/1.pdf', 1)
   },
   methods:{
     // 获取浏览器内部的宽高
@@ -58,10 +60,10 @@ export default {
       const canvas = vm.$refs.pdfCanvas
       const context = canvas.getContext('2d')
 
-      let desiredHeight = vm.screenHeight
+      let desiredWidth = vm.screenWidth
       let viewport = page.getViewport({ scale: 1 })
 
-      let scale = desiredHeight / viewport.height;
+      let scale = desiredWidth / viewport.width;
       let scaledViewport = page.getViewport({ scale: scale })
 
       canvas.width = scaledViewport.width
@@ -73,14 +75,15 @@ export default {
       }
 
       const renderPage = await page.render(renderContext).promise
-      const textContent = await page.getTextContent()  
+      const textContent = await page.getTextContent()
+      console.log(textContent)
       const textLayerDiv = vm.$refs.pdfText
-      const eventBus = new EventBus()
+      const eventBus = new pdfjsViewer.EventBus()
       console.log(textContent)
       console.log(eventBus)
 
       // 创建新的TextLayerBuilder实例
-      let textLayer = new TextLayerBuilder({
+      let textLayer = new pdfjsViewer.TextLayerBuilder({
           textLayerDiv: textLayerDiv,
           eventBus:eventBus,
           pageIndex: page.pageIndex,
@@ -88,72 +91,53 @@ export default {
       })
       
       textLayer.setTextContent(textContent)
-      
       textLayer.render()
     },
-    async pageViewer(){
+    async pageViewer(url, curPage){
       let vm = this
-      const CMAP_URL = "../../../../../node_modules/pdfjs-dist/cmaps/"
-      const CMAP_PACKED = true
+      // const CMAP_URL = "../../../../../node_modules/pdfjs-dist/cmaps/"
+      // const CMAP_PACKED = true
 
-      const DEFAULT_URL = "/1.pdf"
-      const PAGE_TO_VIEW = 1
+      // const DEFAULT_URL = url
+      // const PAGE_TO_VIEW = page
       const SCALE = 1.0
 
       const container = vm.$refs.pageContainer
-      const pdfText = vm.$refs.pdfText
+      // const pdfText = vm.$refs.pdfText
 
-      const eventBus = new EventBus();
+      const eventBus = new pdfjsViewer.EventBus();
 
       // Loading document.
-      let loadingTask = await pdfjsLib.getDocument({
-        url: DEFAULT_URL,
-        cMapUrl: CMAP_URL,
-        cMapPacked: CMAP_PACKED,
-      }).promise
-      console.log(loadingTask)
-      const page = await loadingTask.getPage(PAGE_TO_VIEW)
-      // const textContent = await page.getTextContent()
+      // let loadingTask = await pdfjsLib.getDocument({
+      //   url: DEFAULT_URL,
+      //   // cMapUrl: CMAP_URL,
+      //   // cMapPacked: CMAP_PACKED,
+      // }).promise
+      const loadingTask = await pdfjsLib.getDocument(url).promise
 
+      const page = await loadingTask.getPage(curPage)
+      const textContent = await page.getTextContent()
+      console.log(textContent)
       let desiredHeight = vm.screenHeight
       let viewport = page.getViewport({ scale: SCALE })
       let scale = desiredHeight / viewport.height
       let scaledViewport = page.getViewport({ scale: scale })
 
-
-
-
       // Creating the page view with default parameters.
-      const pdfPageView = new PDFPageView({
+      const pdfPageView = new pdfjsViewer.PDFPageView({
         container: container,
-        id: PAGE_TO_VIEW,
+        id: curPage,
         scale: scale,
         defaultViewport: scaledViewport,
         eventBus: eventBus,
         // We can enable text/annotations layers, if needed
         // textLayerFactory: textLayer,
-        textLayerFactory: new DefaultTextLayerFactory(),
-        annotationLayerFactory: new DefaultAnnotationLayerFactory(),
+        textLayerFactory: new pdfjsViewer.DefaultTextLayerFactory(),
+        // annotationLayerFactory: new pdfjsViewer.DefaultAnnotationLayerFactory(),
       })
       // Associates the actual page with the view, and drawing it
       pdfPageView.setPdfPage(page)
       pdfPageView.draw()
-
-      // let textLayer = new TextLayerBuilder({
-      //     textLayerDiv: pdfText,
-      //     eventBus:eventBus,
-      //     pageIndex: page.pageIndex,
-      //     viewport: scaledViewport
-      // })
-      // textLayer.setTextContent(textContent)
-      // textLayer.render()
-      
-      // textLayer.setTextContent(textContent)
-      
-      // textLayer.render()
-    },
-    test(){
-
     },
     range(){
       const selection = window.getSelection()
@@ -169,6 +153,7 @@ export default {
       const range = selection.getRangeAt(0)
       const rangeList = range.getClientRects()
       console.log(range.getClientRects())
+
       const start = {
         startContainer: range.startContainer,
         startOffset: range.startOffset
@@ -177,6 +162,47 @@ export default {
         endContainer: range.endContainer,
         endOffset: range.endOffset
       }
+
+      const RANGE_COUNT = selection.rangeCount
+      const startNode = range.startContainer
+      const endNode = range.endContainer
+      let selectedNodes = []
+      let curNode = startNode
+
+      // if(RANGE_COUNT === 1){
+      //   if(curNode.nodeType === 3){
+      //     curNode.splitText(start.startOffset)
+      //   }
+      // }
+
+      // for(let i = 0;i < RANGE_COUNT; i++){
+      //   if(curNode === startNode){
+      //     if(curNode.nodeType === 3){
+      //       curNode.splitText(start.startOffset)
+      //       const node = curNode.nextSibling
+      //       selectedNodes.push(node)
+      //     }
+      //   }
+
+      //   if(curNode === endNode){
+      //     if(curNode.nodeType === 3){
+      //       const node = curNode
+      //       node.splitText(end.endOffset)
+      //       selectedNodes.push(node)
+      //     }
+      //   }
+      //   curNode = curNode.nextSibling
+      // }
+      // console.log(selectedNodes)
+      // 首尾节点拆分
+      // const startNode = start.startContainer.splitText(start.startOffset)
+      // console.log(startNode)
+      // 创建一个<i>的标签
+      const i = document.createElement('i')
+      i.className = 'highLight'
+      i.innerHTML = selection.toString()
+      console.log(i)
+      // start.startContainer.parentNode.insertBefore(i, startNode)
     }
   }
 }
@@ -184,10 +210,9 @@ export default {
 
 <template>
   <div>
-    <div ref="pageContainer" class="pdfViewer singlePageView" @mouseup="test">
-      <div ref="pdfText" class="textLayer" @mouseup="range"></div>
+    <div ref="pageContainer" class="pdfViewer singlePageView" @mouseup="range">
     </div>
-<!--     <div id="container" ref="pdfContainer">
+    <!-- <div id="container" ref="pdfContainer">
       <canvas id="pdf-canvas" ref="pdfCanvas"/>
       <div id="text" ref="pdfText" class="textLayer" @mouseup="range"></div>
     </div> -->
@@ -197,5 +222,8 @@ export default {
 <style type="text/css">
   body{
     padding:0;
+  }
+  .highLight{
+    background-color: rgba(0, 0, 0, 1)
   }
 </style>
