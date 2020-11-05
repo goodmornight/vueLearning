@@ -10,7 +10,7 @@ export default {
       x: 0,
       y: 0,
       showTools: false,
-      selectedText: ''
+      selectedText: '',
     }
   },
   computed:{
@@ -157,19 +157,32 @@ export default {
       //   console.log(selectedNodes)
       // })
     },
+    // 绘制高亮
     drawHighLight(selectedNodes){
+
       selectedNodes.forEach(node => {
 
-        const span = document.createElement('span')
-        span.className = 'highLight'
+        const mark = document.createElement('mark')
+        // mark.setAttribute('class', 'hight-light-hover')
+        // let VNode = vm.$createElement('span',node.parentNode.cloneNode(false))
+        // const mark = vm.$createElement('mark', node.cloneNode(false))
+        // console.log(VNode)
+        // console.log(mark)
+        // span.className = 'highLight'
         // i.innerHTML = selection.toString()
         // wrap.setAttribute('class', 'highlight')
         // console.log(node.cloneNode(false))
-        span.appendChild(node.cloneNode(false))
-        node.parentNode.replaceChild(span, node)
+        
+        mark.appendChild(node.cloneNode(false))
+        // console.log(mark)
+        node.parentNode.replaceChild(mark, node)
+        // node.parentNode.replaceChild(`<HighLightMark :content='node.cloneNode(false)'>`, node)
 
       })
     },
+    // createNewNode(node, tagName, class, ){
+
+    // },
     selectionTool(selection){
       // const selection = window.getSelection()
       // const range = selection.getRangeAt(0)
@@ -186,7 +199,9 @@ export default {
       this.showTools = true
       this.selectedText = selection.toString() 
     },
-
+    hideSelectionTool(){
+      this.showTools = false
+    },
     highLight(){
       let vm = this
       const selection = window.getSelection()
@@ -200,6 +215,13 @@ export default {
       vm.showTools = false
     },
     
+    delHighLight(){
+      let vm = this
+      const selection = window.getSelection()
+      selection.removeRange(selection.getRangeAt(0))
+      vm.showTools = false
+    },
+
     DFS(node, cb) {
       let vm = this
       let deep = 1
@@ -251,13 +273,14 @@ export default {
     <span>bullets flying, a gorgeous but pouty girl in the passenger’s seat, and a bitch of a headache.</span>
     <span>With only one of his arms on the wheel, the Jeep slewed to the left, and the pouty girl screamed as</span>
     <span>he forced the vehicle back onto the trail just before they would have crashed into a felled tree.</span>
+    <!-- <HighLightMark v-for="item of selectedNodes"/> -->
     <div
       v-show="showTools"
       ref="tip"
       class="tools"
       :style="{
         left: `${x}px`,
-        top: `${y}px`
+        top: `${y}px`,
       }"
       @mousedown.prevent=""
     >
@@ -265,9 +288,13 @@ export default {
         class="item"
         @click="highLight"
       >
-        <svg style="width:24px;height:24px" viewBox="0 0 24 24">
-          <path fill="#000000" d="M18.5,1.15C17.97,1.15 17.46,1.34 17.07,1.73L11.26,7.55L16.91,13.2L22.73,7.39C23.5,6.61 23.5,5.35 22.73,4.56L19.89,1.73C19.5,1.34 19,1.15 18.5,1.15M10.3,8.5L4.34,14.46C3.56,15.24 3.56,16.5 4.36,17.31C3.14,18.54 1.9,19.77 0.67,21H6.33L7.19,20.14C7.97,20.9 9.22,20.89 10,20.12L15.95,14.16" />
-        </svg>
+        <i class="uil uil-pen"></i>
+      </span>
+      <span
+        class="item"
+        @click="delHighLight"
+      >
+        <i class="uil uil-trash"></i>
       </span>
     </div>
   </div>
@@ -319,6 +346,7 @@ export default {
     color: #FFF;
     cursor: pointer;
     display: inline-block;
+    font-size: 18px;
   }
 
   .item path{
@@ -332,7 +360,13 @@ export default {
   .item:hover{
     color: #1199ff;
   }
-  .highlight-wrap-hover{
+  /*.highlight-wrap-hover{
     color: #ff9;
+  }*/
+  mark{
+    user-select: none
+  }
+  mark:hover{
+    filter: brightness(95%);
   }
 </style>
