@@ -468,40 +468,57 @@ const testRoutes = [
         children: [
           {
             path: 'vuePdf',
-            name: 'vuePdf',
+            name: '插件vue-pdf',
             component: () =>
               lazyLoadView(import('@views/pages/test/pdf')),
           },
           {
             path: 'pdfIframe',
-            name: 'pdfIframe',
+            name: 'Iframe方式',
             component: () =>
               lazyLoadView(import('@views/pages/test/pdfIframe')),
           },
           {
             path: 'pdfJsDist',
-            name: 'pdfJsDist',
-            component: require('@views/pages/test/pdfJsDist').default,
+            name: 'psfjs:canvas+textLayer+web-highlighter',
+            component: () =>
+              lazyLoadView(import('@views/pages/test/pdfJsDist'))
           },
           {
             path: 'highLight',
-            name: 'highLight',
-            component: require('@views/pages/test/highLight').default,
+            name: '插件web-highLighter',
+            component: () =>
+              lazyLoadView(import('@views/pages/test/highLight'))
           }, 
           {
             path: 'pdfjs',
-            name: 'pdfjs',
-            component: require('@views/pages/test/pdfjs').default,
+            name: 'psfjs:canvas+textLayer',
+            component: () =>
+              lazyLoadView(import('@views/pages/test/pdfjs'))
           },
           {
             path: 'pdfViewer',
-            name: 'pdfViewer',
-            component: require('@views/pages/test/pdfViewer').default,
+            name: 'pdfViewer加载+自定义高亮',
+            component: () =>
+              lazyLoadView(import('@views/pages/test/pdfViewer'))
           },
           {
             path: 'highLightText',
-            name: 'highLightText',
-            component: require('@views/pages/test/highLightText').default,
+            name: '自定义高亮测试',
+            component: () =>
+              lazyLoadView(import('@views/pages/test/highLightText'))
+          },
+          {
+            path: 'vueHighLightText',
+            name: '插件vue-text-highlight',
+            component: () =>
+              lazyLoadView(import('@views/pages/test/vueHighLightText'))
+          },
+          {
+            path: 'webHighLighter',
+            name: '插件web-highlighter',
+            component: () =>
+              lazyLoadView(import('@views/pages/test/webHighLighter'))
           },
         ],
       },

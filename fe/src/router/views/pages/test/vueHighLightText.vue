@@ -1,9 +1,10 @@
 <script>
+import TextHighlight from 'vue-text-highlight'
 export default {
   page: {
     title: 'PDF',
   },
-  components: {  },
+  components: { TextHighlight },
   data() {
     return {
       title: 'PDF',
@@ -11,6 +12,7 @@ export default {
       y: 0,
       showTools: false,
       selectedText: '',
+      queries: ['Drake veer', 'Drake'],
     }
   },
   computed:{
@@ -128,34 +130,6 @@ export default {
         console.log(curNode)
       }
 
-      // vm.DFS(vm.$refs.container,function (curNode,deep) {
-
-      //   if(curNode.nodeType === 3){
-
-      //     if(curNode === startContainer){
-
-      //       curNode.splitText(startOffset)
-      //       const node = curNode.nextSibling
-      //       selectedNodes.push(node)
-      //       withinSelectedRange = true
-
-      //     }else if(curNode === endContainer){
-
-      //       const node = curNode
-      //       node.splitText(endOffset)
-      //       selectedNodes.push(node)
-      //       withinSelectedRange = false
-      //       console.log(selectedNodes)
-      //       return selectedNodes
-
-      //     }else if(withinSelectedRange){
-
-      //       selectedNodes.push(curNode)
-
-      //     }
-      //   }
-      //   console.log(selectedNodes)
-      // })
     },
     // 绘制高亮
     drawHighLight(selectedNodes){
@@ -164,15 +138,19 @@ export default {
 
         const mark = document.createElement('mark')
         // mark.setAttribute('class', 'hight-light-hover')
-
+        // let VNode = vm.$createElement('span',node.parentNode.cloneNode(false))
+        // const mark = vm.$createElement('mark', node.cloneNode(false))
+        // console.log(VNode)
+        // console.log(mark)
         // span.className = 'highLight'
         // i.innerHTML = selection.toString()
         // wrap.setAttribute('class', 'highlight')
         // console.log(node.cloneNode(false))
         
         mark.appendChild(node.cloneNode(false))
-
+        // console.log(mark)
         node.parentNode.replaceChild(mark, node)
+        // node.parentNode.replaceChild(`<HighLightMark :content='node.cloneNode(false)'>`, node)
 
       })
     },
@@ -262,37 +240,11 @@ export default {
 }
 </script>
 
-<template>
+<template> 
   <div ref="container" class="container" @mouseup="range">
-    <span>Tropical birds scattered as Drake veered the Jeep onto an old rutted track,</span>
-    <span>snapping branches and tearing away vines, plowing through the rain forest with killers in pursuit,</span>
-    <span>bullets flying, a gorgeous but pouty girl in the passenger’s seat, and a bitch of a headache.</span>
-    <span>With only one of his arms on the wheel, the Jeep slewed to the left, and the pouty girl screamed as</span>
-    <span>he forced the vehicle back onto the trail just before they would have crashed into a felled tree.</span>
-    <!-- <HighLightMark v-for="item of selectedNodes"/> -->
-    <div
-      v-show="showTools"
-      ref="tip"
-      class="tools"
-      :style="{
-        left: `${x}px`,
-        top: `${y}px`,
-      }"
-      @mousedown.prevent=""
-    >
-      <span
-        class="item"
-        @click="highLight"
-      >
-        <i class="uil uil-pen"></i>
-      </span>
-      <span
-        class="item"
-        @click="delHighLight"
-      >
-        <i class="uil uil-trash"></i>
-      </span>
-    </div>
+    <TextHighlight :queries="queries">
+      Tropical birds scattered as Drake veered the Jeep onto an old rutted track,
+    </TextHighlight>
   </div>
 </template>
 

@@ -1,4 +1,24 @@
 <script>
+// import WebHighLighter from '@utils/webHighLighter/highlighter'
+import '@src/design/highlighter/my.css'
+import Highlighter from 'web-highlighter'
+import LocalStore from '@utils/webHighLighter/local.store'
+
+const highlighter = new Highlighter({
+    wrapTag: 'span',
+    exceptSelectors: ['.my-remove-tip', 'pre', 'code'],
+    style:{
+      className:'highLight'
+    }
+})
+const store = new LocalStore()
+
+// retrieve data from store, and display highlights on the website
+store.getAll().forEach(
+    // hs is the same data saved by 'store.save(sources)'
+    ({hs}) => highlighter.fromStore(hs.startMeta, hs.endMeta, hs.text, hs.id)
+);
+
 export default {
   page: {
     title: 'PDF',
@@ -10,7 +30,9 @@ export default {
       x: 0,
       y: 0,
       showTools: false,
+      isSelected:false,
       selectedText: '',
+      curID:''
     }
   },
   computed:{
@@ -19,21 +41,55 @@ export default {
     }
   },
   mounted(){
-    
+    let vm = this
+    highlighter
+    .on(Highlighter.event.HOVER, ({id}) => {
+
+        const selection = window.getSelection()
+        console.log(selection)
+        vm.showTools = true
+        vm.isSelected = true
+        vm.curID = id
+        // display different bg color when hover
+        highlighter.addClass('highlight-wrap-hover', id)
+
+        if(!selection.isCollapsed){
+          const range = selection.getRangeAt(0)
+          vm.isSelected = false
+          const { x, y, width } = range.getBoundingClientRect()
+          this.x = x + (width / 2)
+          this.y = y + window.scrollY - 10
+          this.showTools = true
+        }
+
+    })
+    .on(Highlighter.event.HOVER_OUT, ({id}) => {
+        // vm.showTools = false
+        // vm.isSelected = false
+        // remove the hover effect when leaving
+        vm.curID = id
+        highlighter.removeClass('highlight-wrap-hover', id);
+    })
+    .on(Highlighter.event.CREATE, ({sources}) => {
+        vm.curID = sources.id
+        sources = sources.map(hs => ({hs}))
+        // save to backend
+        store.save(sources)
+        vm.showTools = false
+        vm.isSelected = false
+    })
+    .on(Highlighter.event.REMOVE, ({ids}) => {
+        ids.forEach(id => {
+          vm.curID = id
+          store.remove(id)
+        })
+        vm.showTools = false
+        vm.isSelected = false
+    })
+
   },
   methods:{
-    // 获取浏览器内部的宽高
-    getWH(){
-      let vm = this
-      vm.screenWidth = window.innerWidth
-      vm.screenHeight = window.innerHeight
-      window.onresize = () => {
-        return (() => {
-          vm.screenWidth = window.innerWidth
-          vm.screenHeight = window.innerHeight
-        })()
-      }
-    },
+    
     range(){
       let vm = this
       const selection = window.getSelection()
@@ -47,23 +103,6 @@ export default {
       console.log(selection)
       console.log(selection.toString())
       console.log(selection.getRangeAt(0))
-
-      // const range = selection.getRangeAt(0)
-      // console.log(range.getClientRects())
-      
-      // const selectedNodes = vm.getSelectionRange(vm.$refs.container, range)
-      // console.log(selectedNodes)
-
-      // vm.drawHighLight(selectedNodes)
- 
-      // const start = {
-      //   startContainer: range.startContainer,
-      //   startOffset: range.startOffset
-      // }
-      // const end = {
-      //   endContainer: range.endContainer,
-      //   endOffset: range.endOffset
-      // }
     },
 
     getSelectionRange(root, range){
@@ -127,73 +166,24 @@ export default {
         curNode = treeWalker.nextNode()
         console.log(curNode)
       }
-
-      // vm.DFS(vm.$refs.container,function (curNode,deep) {
-
-      //   if(curNode.nodeType === 3){
-
-      //     if(curNode === startContainer){
-
-      //       curNode.splitText(startOffset)
-      //       const node = curNode.nextSibling
-      //       selectedNodes.push(node)
-      //       withinSelectedRange = true
-
-      //     }else if(curNode === endContainer){
-
-      //       const node = curNode
-      //       node.splitText(endOffset)
-      //       selectedNodes.push(node)
-      //       withinSelectedRange = false
-      //       console.log(selectedNodes)
-      //       return selectedNodes
-
-      //     }else if(withinSelectedRange){
-
-      //       selectedNodes.push(curNode)
-
-      //     }
-      //   }
-      //   console.log(selectedNodes)
-      // })
     },
-    // 绘制高亮
-    drawHighLight(selectedNodes){
 
-      selectedNodes.forEach(node => {
-
-        const mark = document.createElement('mark')
-        // mark.setAttribute('class', 'hight-light-hover')
-
-        // span.className = 'highLight'
-        // i.innerHTML = selection.toString()
-        // wrap.setAttribute('class', 'highlight')
-        // console.log(node.cloneNode(false))
-        
-        mark.appendChild(node.cloneNode(false))
-
-        node.parentNode.replaceChild(mark, node)
-
-      })
-    },
-    // createNewNode(node, tagName, class, ){
-
-    // },
     selectionTool(selection){
       // const selection = window.getSelection()
       // const range = selection.getRangeAt(0)
-
+      this.isSelected = false
       if (selection.isCollapsed) {
         this.showTools = false
         return
       }
-
-      const { x, y, width } = selection.getRangeAt(0).getBoundingClientRect()
+      const range = selection.getRangeAt(0)
+      const { x, y, width } = range.getBoundingClientRect()
       
       this.x = x + (width / 2)
       this.y = y + window.scrollY - 10
       this.showTools = true
-      this.selectedText = selection.toString() 
+      this.selectedText = selection.toString()
+      
     },
     hideSelectionTool(){
       this.showTools = false
@@ -202,62 +192,26 @@ export default {
       let vm = this
       const selection = window.getSelection()
       const range = selection.getRangeAt(0)
-      console.log(range.getClientRects())
+      highlighter.fromRange(range)
+      // console.log(range.getClientRects())
       
-      const selectedNodes = vm.getSelectionRange(vm.$refs.container, range)
-      console.log(selectedNodes)
+      // const selectedNodes = vm.getSelectionRange(vm.$refs.container, range)
+      // console.log(selectedNodes)
 
-      vm.drawHighLight(selectedNodes)
+      // vm.drawHighLight(selectedNodes)
       vm.showTools = false
+      vm.isSelected = false
+      selection.removeRange(range)
     },
     
     delHighLight(){
       let vm = this
+      highlighter.remove(vm.curID)
       const selection = window.getSelection()
-      selection.removeRange(selection.getRangeAt(0))
+      const range = selection.getRangeAt(0)
+      selection.removeRange(range)
       vm.showTools = false
     },
-
-    DFS(node, cb) {
-      let vm = this
-      let deep = 1
-      vm.DFSdom(node, deep, cb)
-    },
-
-    DFSdom(node, deep, cb) {
-      let vm = this
-      if(!node) return
-
-      cb(node,deep)
-
-      if(!node.childNodes.length) return
-
-      deep++
-      Array.from(node.childNodes).forEach(item => vm.DFSdom(item,deep,cb))
-    },
-
-    BFS(node,cb) {
-      if(!node)
-        return;
-
-      var queue = [{
-        node: node,
-        depth: 1
-      }]
-
-      while(queue.length) {
-        var current = queue.shift();
-
-        cb(current)
-
-        current.node.childNodes.length && Array.from(current.node.childNodes).forEach(item => {
-          queue.push({
-            node: item,
-            depth: current.depth + 1
-          })
-        })
-      }
-    }
   }
 }
 </script>
@@ -269,7 +223,6 @@ export default {
     <span>bullets flying, a gorgeous but pouty girl in the passenger’s seat, and a bitch of a headache.</span>
     <span>With only one of his arms on the wheel, the Jeep slewed to the left, and the pouty girl screamed as</span>
     <span>he forced the vehicle back onto the trail just before they would have crashed into a felled tree.</span>
-    <!-- <HighLightMark v-for="item of selectedNodes"/> -->
     <div
       v-show="showTools"
       ref="tip"
@@ -281,12 +234,14 @@ export default {
       @mousedown.prevent=""
     >
       <span
+        v-show="!isSelected"
         class="item"
         @click="highLight"
       >
         <i class="uil uil-pen"></i>
       </span>
       <span
+        v-show="isSelected"
         class="item"
         @click="delHighLight"
       >
@@ -306,9 +261,6 @@ export default {
     font-size: 16px;
     /*line-height: 32px;*/
     margin: 10% auto;
-  }
-  .highLight{
-    background-color: #ff8
   }
   .tools{
     height: 30px;
@@ -356,11 +308,8 @@ export default {
   .item:hover{
     color: #1199ff;
   }
-  mark{
-    background: #fc0;
-    user-select: none
+  .highLight{
+    background-color: #fc0;
   }
-  mark:hover{
-    filter: brightness(95%);
-  }
+
 </style>
