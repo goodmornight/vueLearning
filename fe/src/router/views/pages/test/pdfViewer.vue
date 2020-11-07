@@ -1,14 +1,11 @@
 <script>
+// pdfViewer加载+自定义高亮
 import workerSrc from '!!file-loader!pdfjs-dist/build/pdf.worker.js'
-
-// import { TextLayerBuilder, EventBus } from 'pdfjs-dist/web/pdf_viewer'
-// import { TextLayerBuilder, EventBus, PDFPageView, DefaultTextLayerFactory, DefaultAnnotationLayerFactory } from 'pdfjs-dist/web/pdf_viewer'
 import 'pdfjs-dist/web/pdf_viewer.css'
 
 const pdfjsLib = require(/* webpackChunkName: "pdfjs-dist" */ `pdfjs-dist`)
 const pdfjsViewer = require(/* webpackChunkName: "pdfjs-dist" */ `pdfjs-dist/web/pdf_viewer.js`)
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc
-
 
 export default {
   page: {
@@ -52,51 +49,6 @@ export default {
           vm.screenHeight = window.innerHeight
         })()
       }
-    },
-    // 加载pdf
-    async renderPdf(pdfUrl){
-      let vm = this
-      // let pageDiv = document.getElementById('container')
-      let pageDiv = vm.$refs.pdfContainer
-
-      const pdf = await pdfjsLib.getDocument(pdfUrl).promise
-      const page = await pdf.getPage(1)
-
-      const canvas = vm.$refs.pdfCanvas
-      const context = canvas.getContext('2d')
-
-      let desiredWidth = vm.screenWidth
-      let viewport = page.getViewport({ scale: 1 })
-
-      let scale = desiredWidth / viewport.width;
-      let scaledViewport = page.getViewport({ scale: scale })
-
-      canvas.width = scaledViewport.width
-      canvas.height = scaledViewport.height
-
-      const renderContext = {
-        canvasContext: context,
-        viewport: scaledViewport,
-      }
-
-      const renderPage = await page.render(renderContext).promise
-      const textContent = await page.getTextContent()
-      console.log(textContent)
-      const textLayerDiv = vm.$refs.pdfText
-      const eventBus = new pdfjsViewer.EventBus()
-      console.log(textContent)
-      console.log(eventBus)
-
-      // 创建新的TextLayerBuilder实例
-      let textLayer = new pdfjsViewer.TextLayerBuilder({
-          textLayerDiv: textLayerDiv,
-          eventBus:eventBus,
-          pageIndex: page.pageIndex,
-          viewport: scaledViewport
-      })
-      
-      textLayer.setTextContent(textContent)
-      textLayer.render()
     },
     async pageViewer(url, curPage){
       let vm = this

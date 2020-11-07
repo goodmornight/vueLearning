@@ -486,7 +486,7 @@ const testRoutes = [
           },
           {
             path: 'highLight',
-            name: '插件web-highLighter',
+            name: 'pdfjs+web-highLighter',
             component: () =>
               lazyLoadView(import('@views/pages/test/highLight'))
           }, 

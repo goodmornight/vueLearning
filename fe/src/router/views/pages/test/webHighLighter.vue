@@ -1,100 +1,116 @@
 <script>
-// import WebHighLighter from '@utils/webHighLighter/highlighter'
 import '@src/design/highlighter/my.css'
 import Highlighter from 'web-highlighter'
 import LocalStore from '@utils/webHighLighter/local.store'
-
-const highlighter = new Highlighter({
-    wrapTag: 'span',
-    exceptSelectors: ['.my-remove-tip', 'pre', 'code'],
-    style:{
-      className:'highLight'
-    }
-})
-const store = new LocalStore()
-
-// retrieve data from store, and display highlights on the website
-store.getAll().forEach(
-    // hs is the same data saved by 'store.save(sources)'
-    ({hs}) => highlighter.fromStore(hs.startMeta, hs.endMeta, hs.text, hs.id)
-);
+import { authComputed } from '@state/helpers'
 
 export default {
   page: {
-    title: 'PDF',
+    title: 'web-highlighter',
   },
   components: {  },
   data() {
     return {
-      title: 'PDF',
       x: 0,
       y: 0,
-      showTools: false,
+      isShowTools: false,
       isSelected:false,
-      selectedText: '',
-      curID:''
+      curID:'',
+      highlighter:null,
+      store:null
     }
   },
   computed:{
-    highlightableEl () {
-      return this.$refs.tip
-    }
+    ...authComputed
   },
   mounted(){
-    let vm = this
-    highlighter
-    .on(Highlighter.event.HOVER, ({id}) => {
 
-        const selection = window.getSelection()
-        console.log(selection)
-        vm.showTools = true
-        vm.isSelected = true
-        vm.curID = id
-        // display different bg color when hover
-        highlighter.addClass('highlight-wrap-hover', id)
-
-        if(!selection.isCollapsed){
-          const range = selection.getRangeAt(0)
-          vm.isSelected = false
-          const { x, y, width } = range.getBoundingClientRect()
-          this.x = x + (width / 2)
-          this.y = y + window.scrollY - 10
-          this.showTools = true
-        }
-
-    })
-    .on(Highlighter.event.HOVER_OUT, ({id}) => {
-        // vm.showTools = false
-        // vm.isSelected = false
-        // remove the hover effect when leaving
-        vm.curID = id
-        highlighter.removeClass('highlight-wrap-hover', id);
-    })
-    .on(Highlighter.event.CREATE, ({sources}) => {
-        vm.curID = sources.id
-        sources = sources.map(hs => ({hs}))
-        // save to backend
-        store.save(sources)
-        vm.showTools = false
-        vm.isSelected = false
-    })
-    .on(Highlighter.event.REMOVE, ({ids}) => {
-        ids.forEach(id => {
-          vm.curID = id
-          store.remove(id)
-        })
-        vm.showTools = false
-        vm.isSelected = false
-    })
+    this.initHighLighter(this.highlighter)
 
   },
   methods:{
+    // 初始化web-highlighter插件
+    initHighLighter(){
+      let vm = this
+
+      vm.highlighter = new Highlighter({
+        wrapTag: 'span',
+        exceptSelectors: ['pre', 'code'],
+        style:{
+          className:'highLight'
+        }
+      })
+      vm.store = new LocalStore()
+
+      // retrieve data from store, and display highlights on the website
+      vm.store.getAll().forEach(
+          // hs is the same data saved by 'store.save(sources)'
+        ({hs}) => vm.highlighter.fromStore(hs.startMeta, hs.endMeta, hs.text, hs.id)
+      )
+
+      vm.highlighter
+      .on(Highlighter.event.HOVER, ({id}) => {
+
+          const selection = window.getSelection()
+          vm.isShowTools = true
+          vm.isSelected = true
+          vm.curID = id
+          // 鼠标放置高亮文本处，改变样式
+          vm.highlighter.addClass('highlight-wrap-hover', id)
+          
+          if(selection.isCollapsed){
+            // 未选中文本
+            console.log(window.event)
+            console.log(window.event.target)
+            console.log(window.event.target.getBoundingClientRect())
+            vm.getToolLocation(window.event.target)
+
+          }else{
+            // 选中文本
+            const range = selection.getRangeAt(0)
+            vm.isSelected = false
+            vm.getToolLocation(range)
+
+          }
+
+      })
+      .on(Highlighter.event.HOVER_OUT, ({id}) => {
+          // remove the hover effect when leaving
+          vm.curID = id
+          vm.highlighter.removeClass('highlight-wrap-hover', id);
+      })
+      .on(Highlighter.event.CREATE, ({sources}) => {
+          vm.curID = sources.id
+          sources = sources.map(hs => ({hs}))
+          // save to backend
+          vm.store.save(sources)
+          vm.isShowTools = false
+          vm.isSelected = false
+      })
+      .on(Highlighter.event.REMOVE, ({ids}) => {
+          ids.forEach(id => {
+            vm.curID = id
+            vm.store.remove(id)
+          })
+          vm.isShowTools = false
+          vm.isSelected = false
+      })
+    },
+
+    // 计算按钮位置
+    getToolLocation(node){
+      const { x, y, width } = node.getBoundingClientRect()
+      this.x = x + (width / 2)
+      this.y = y + window.scrollY - 10
+    },
     
+    // 选中文本触发事件
     range(){
       let vm = this
       const selection = window.getSelection()
       // 判断选区起始点是否在同一个位置
       if (selection.isCollapsed) {
+        vm.isShowTools = false
         console.debug('no text selected')
         return null;
       }
@@ -105,112 +121,39 @@ export default {
       console.log(selection.getRangeAt(0))
     },
 
-    getSelectionRange(root, range){
-
-      const {
-        startContainer,
-        endContainer,
-        startOffset,
-        endOffset
-      } = range
-
-      let selectedNodes = []
-      
-      // 选中区域在一个节点内
-      if(startContainer === endContainer){
-
-        startContainer.splitText(startOffset)
-        let passedNode = startContainer.nextSibling
-        passedNode.splitText(endOffset - startOffset)
-
-        selectedNodes.push(passedNode)
-        return selectedNodes
-
-      }
-
-      // 选中区域包含多个节点
-      let curNode = root
-      let withinSelectedRange = false
-      let treeWalker = document.createTreeWalker(curNode, NodeFilter.SHOW_TEXT, null, false)
-
-      while(curNode != null){
-        if(curNode.nodeType === 3){
-          
-          if(curNode === startContainer){
-
-            curNode.splitText(startOffset)
-            const node = curNode.nextSibling
-            selectedNodes.push(node)
-
-            curNode = treeWalker.nextNode()
-
-            withinSelectedRange = true
-
-          }else if(curNode === endContainer){
-
-            const node = curNode
-            node.splitText(endOffset)
-            selectedNodes.push(node)
-
-            withinSelectedRange = false
-
-            return selectedNodes
-
-          }else if(withinSelectedRange){
-
-            selectedNodes.push(curNode)
-
-          }
-        }
-        
-        curNode = treeWalker.nextNode()
-        console.log(curNode)
-      }
-    },
-
+    // 选中文本弹出按钮
     selectionTool(selection){
-      // const selection = window.getSelection()
-      // const range = selection.getRangeAt(0)
-      this.isSelected = false
+      let vm = this
+      vm.isSelected = false
+
       if (selection.isCollapsed) {
-        this.showTools = false
+        vm.isShowTools = false
         return
       }
+
       const range = selection.getRangeAt(0)
-      const { x, y, width } = range.getBoundingClientRect()
-      
-      this.x = x + (width / 2)
-      this.y = y + window.scrollY - 10
-      this.showTools = true
-      this.selectedText = selection.toString()
+      vm.getToolLocation(range)
+      this.isShowTools = true
       
     },
-    hideSelectionTool(){
-      this.showTools = false
-    },
+
+    // 高亮文本
     highLight(){
       let vm = this
       const selection = window.getSelection()
       const range = selection.getRangeAt(0)
-      highlighter.fromRange(range)
-      // console.log(range.getClientRects())
-      
-      // const selectedNodes = vm.getSelectionRange(vm.$refs.container, range)
-      // console.log(selectedNodes)
+      // 使用web-highlighter高亮文本
+      vm.highlighter.fromRange(range)
 
-      // vm.drawHighLight(selectedNodes)
-      vm.showTools = false
+      vm.isShowTools = false
       vm.isSelected = false
       selection.removeRange(range)
     },
-    
+    // 删除高亮
     delHighLight(){
       let vm = this
-      highlighter.remove(vm.curID)
-      const selection = window.getSelection()
-      const range = selection.getRangeAt(0)
-      selection.removeRange(range)
-      vm.showTools = false
+      vm.highlighter.remove(vm.curID)
+      vm.isShowTools = false
     },
   }
 }
@@ -224,7 +167,7 @@ export default {
     <span>With only one of his arms on the wheel, the Jeep slewed to the left, and the pouty girl screamed as</span>
     <span>he forced the vehicle back onto the trail just before they would have crashed into a felled tree.</span>
     <div
-      v-show="showTools"
+      v-show="isShowTools"
       ref="tip"
       class="tools"
       :style="{
