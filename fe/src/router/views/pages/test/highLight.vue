@@ -9,7 +9,8 @@ import '@src/design/highlighter/my.css'
 
 const pdfjsLib = require(/* webpackChunkName: "pdfjs-dist" */ `pdfjs-dist`)
 const pdfjsViewer = require(/* webpackChunkName: "pdfjs-dist" */ `pdfjs-dist/web/pdf_viewer.js`)
-const log = console.log.bind(console, '[highlighter]');
+const log = console.log.bind(console, '[highlighter]')
+
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc
 
 export default {
@@ -19,14 +20,8 @@ export default {
   components: {  },
   data() {
     return {
-      title: 'PDF',
-      src: '/1.pdf',
       screenWidth: '',
       screenHeight: '',
-      numPages: undefined,
-      currentPage: 1,
-      pageCount: 0,
-      scale:1.5,
       pdfPageView: null,
       x: 0,
       y: 0,
@@ -34,41 +29,31 @@ export default {
       isSelected:false,
       curID:'',
       highlighter:null,
-      store:null
+      store:null,
     }
   },
   computed:{
     ...authComputed,
     renderingState(){
-      return this.pdfPageView
+      return this.pdfPageView.textLayer.renderingDone
     },
 
   },
   watch:{
-    'pdfPageView.renderingState':function(newVal,oldVal){
-      if(newVal.renderingState===3){
-        console.log('加载完成')
+    'pdfPageView.textLayer.renderingDone':function(newVal,oldVal){
+      let vm = this
+      console.log(newVal)
+      if(newVal){
+        vm.storedHighLight()
       }
-    }
-  },
-  created(){
-
+    },
   },
   mounted(){
-    let vm = this
     this.getWH()
     this.pageViewer('/1.pdf', 1)
     this.initHighLighter(this.highlighter)
-    if(this.renderingState===3){
-      console.log('加载完成')
-    }
-    // document.addEventListener('textlayerrendered', function (e) {
-    //   console.log(e)
-    // }, true);
-    // document.addEventListener('pagesloaded', function (e) {
-    //   console.log(e)
-    // }, true);
   },
+
   methods:{
     // 获取浏览器内部的宽高
     getWH(){
@@ -162,21 +147,22 @@ export default {
     },
     // pdf加载
     async pageViewer(url, curPage){
-      let vm = this
-      const SCALE = 1.0
-      const container = vm.$refs.pageContainer
-      const eventBus = new pdfjsViewer.EventBus();
       const loadingTask = await pdfjsLib.getDocument(url).promise
       const page = await loadingTask.getPage(curPage)
+
+      const SCALE = 1.0
+      const container = this.$refs.pageContainer
+      const eventBus = new pdfjsViewer.EventBus();
+      
       const textContent = await page.getTextContent()
 
-      let desiredHeight = vm.screenHeight
+      let desiredHeight = this.screenHeight
       let viewport = page.getViewport({ scale: SCALE })
       let scale = desiredHeight / viewport.height
       let scaledViewport = page.getViewport({ scale: scale })
 
       // Creating the page view with default parameters.
-      vm.pdfPageView = new pdfjsViewer.PDFPageView({
+      this.pdfPageView = new pdfjsViewer.PDFPageView({
         container: container,
         id: curPage,
         scale: scale,
@@ -184,9 +170,10 @@ export default {
         eventBus: eventBus,
         textLayerFactory: new pdfjsViewer.DefaultTextLayerFactory(),
       })
+
       // Associates the actual page with the view, and drawing it
-      vm.pdfPageView.setPdfPage(page)
-      vm.pdfPageView.draw()
+      this.pdfPageView.setPdfPage(page)
+      this.pdfPageView.draw()
       // 
       // var eventBus = new pdfjsViewer.EventBus();
 
@@ -220,14 +207,13 @@ export default {
 
     // 选中文本触发事件
     range(){
-      let vm = this
       const selection = window.getSelection()
       // 判断选区起始点是否在同一个位置
       if (selection.isCollapsed) {
         console.debug('no text selected')
-        return null;
+        return
       }
-      vm.selectionTool(selection)
+      this.selectionTool(selection)
 
       console.log(selection)
       console.log(selection.toString())
@@ -236,39 +222,40 @@ export default {
 
     // 选中文本弹出按钮
     selectionTool(selection){
-      let vm = this
-      vm.isSelected = false
+
+      this.isSelected = false
 
       if (selection.isCollapsed) {
-        vm.isShowTools = false
+        this.isShowTools = false
         return
       }
 
       const range = selection.getRangeAt(0)
-      vm.getToolLocation(range)
+      this.getToolLocation(range)
       this.isShowTools = true
       
     },
 
     // 高亮文本
     highLight(){
-      let vm = this
+
       const selection = window.getSelection()
       const range = selection.getRangeAt(0)
       // 使用web-highlighter高亮文本
-      vm.highlighter.fromRange(range)
+      this.highlighter.fromRange(range)
 
-      vm.isShowTools = false
-      vm.isSelected = false
+      this.isShowTools = false
+      this.isSelected = false
       selection.removeRange(range)
+
     },
     // 删除高亮
     delHighLight(){
       let vm = this
-      vm.highlighter.remove(vm.curID)
-      vm.isShowTools = false
+      this.highlighter.remove(this.curID)
+      this.isShowTools = false
     },
-    test(){
+    storedHighLight(){
       let vm = this
       vm.store = new LocalStore()
       vm.store.getAll().forEach(
@@ -287,7 +274,6 @@ export default {
   <div>
     <div ref="pageContainer" class="pdfViewer singlePageView" @mouseup="range">
     </div>
-    <button @click='test'>历史记录</button>
     <div
       v-show="isShowTools"
       ref="tip"
