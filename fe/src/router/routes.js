@@ -140,7 +140,7 @@ const calendarAppsRoutes = [
     header: 'Apps',
     icon: 'calendar',
     component: () => lazyLoadView(import('@views/pages/apps/calendar')),
-    meta: { authRequired: true },
+    meta: { authRequired: false },
     props: (route) => ({ user: store.state.auth.currentUser || {} }),
   }
 ];

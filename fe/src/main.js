@@ -12,7 +12,7 @@ import vco from 'v-click-outside'
 import VueRouter from 'vue-router'
 import VueFeather from 'vue-feather'
 import flatPickr from 'vue-flatpickr-component'
-// import VueKeyCloak from '@dsb-norge/vue-keycloak-js'
+import VueKeyCloak from '@dsb-norge/vue-keycloak-js'
 
 Vue.use(VueFeather)
 Vue.use(flatPickr)
@@ -39,26 +39,29 @@ Vue.component('apexchart', VueApexCharts)
 // Vue.prototype.$http = require('axios')
 // Vue.prototype.$http.defaults.baseURL  = 'http://mock-api.coderthemes.com/'
 
-const app = new Vue({
-  router,
-  store,
-  render: (h) => h(App),
-}).$mount('#app')
+// const app = new Vue({
+//   router,
+//   store,
+//   render: (h) => h(App),
+// }).$mount('#app')
 
-// let app
-// Vue.use(VueKeyCloak, {
-// 	config: {
-//     	url: process.env.VUE_APP_AUTH_URL, realm: process.env.VUE_APP_AUTH_REALM, clientId: process.env.VUE_APP_AUTH_CLIENT_ID,
-// 	},
-// 	onReady: kc => {
+let app = null
+Vue.use(VueKeyCloak, {
+  init: {
+    onLoad: 'check-sso'
+  },
+	config: {
+    url: process.env.VUE_APP_AUTH_URL, realm: process.env.VUE_APP_AUTH_REALM, clientId: process.env.VUE_APP_AUTH_CLIENT_ID,
+	},
+	onReady: kc => {
 
-// 	    app = new Vue({
-// 		  router,
-// 		  store,
-// 		  render: (h) => h(App),
-// 		}).$mount('#app')
-// 	}
-// })
+	  app = new Vue({
+		  router,
+		  store,
+		  render: (h) => h(App),
+		}).$mount('#app')
+	}
+})
 // If running e2e tests...
 if (process.env.VUE_APP_TEST === 'e2e') {
   // Attach the app to the window, which can be useful

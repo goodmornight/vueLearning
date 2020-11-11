@@ -46,6 +46,8 @@ router.beforeEach((routeTo, routeFrom, next) => {
   // If auth isn't required for the route, just continue.
   if (!authRequired) return next()
 
+  // 源代码/开始
+
   // If auth is required and the user is logged in...
   if (store.getters['auth/loggedIn']) {
     // Validate the local user token...
@@ -64,6 +66,19 @@ router.beforeEach((routeTo, routeFrom, next) => {
     // Pass the original route to the login component
     next({ name: 'login', query: { redirectFrom: routeTo.fullPath } })
   }
+
+  // 源代码/结束
+  // 如果该页面需要认证，则判断该用户是否已登录
+  // if (Vue.prototype.$keycloak.authenticated) {
+
+  //   next()
+
+  // } else {
+  //   // 未登录则进入登录界面
+  //   const loginUrl = Vue.prototype.$keycloak.createLoginUrl()
+  //   window.location.replace(loginUrl)
+
+  // }
 })
 
 router.beforeResolve(async (routeTo, routeFrom, next) => {
