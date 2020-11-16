@@ -14,7 +14,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc
 
 export default {
   page: {
-    title: 'pdfjs+web-highlighter',
+    title: 'pdf整篇显示',
   },
   components: { PDFPage },
   data() {
