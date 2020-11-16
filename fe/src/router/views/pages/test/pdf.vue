@@ -1,5 +1,4 @@
 <script>
-import appConfig from '@src/app.config'
 import Layout from '@layouts/main'
 import Pdf from 'vue-pdf'
 const loadingTask = Pdf.createLoadingTask('/1.pdf')
@@ -8,8 +7,7 @@ const loadingTask = Pdf.createLoadingTask('/1.pdf')
  */
 export default {
   page: {
-    title: 'PDF',
-    meta: [{ name: 'description', content: appConfig.description }],
+    title: 'vue-pdf'
   },
   components: { Layout, Pdf },
   data() {
@@ -55,9 +53,9 @@ export default {
         <form class="form-inline">
           <div class="form-group mr-3">
             <input
+              v-model.number="currentPage"
               type="number"
               class="form-control"
-              v-model.number="currentPage"
               :min="1"
               :max="pageCount"
             />

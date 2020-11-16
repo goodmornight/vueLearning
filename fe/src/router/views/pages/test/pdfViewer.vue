@@ -1,298 +1,207 @@
 <script>
-// pdfViewer加载+自定义高亮
+// pdfViewer加载+web-highlighter高亮
+import PDFPage from '@components/test/pdfPage'
+import Highlighter from 'web-highlighter'
+import LocalStore from '@utils/webHighLighter/local.store'
 import workerSrc from '!!file-loader!pdfjs-dist/build/pdf.worker.js'
 import 'pdfjs-dist/web/pdf_viewer.css'
+import '@src/design/highlighter/my.css'
 
 const pdfjsLib = require(/* webpackChunkName: "pdfjs-dist" */ `pdfjs-dist`)
-const pdfjsViewer = require(/* webpackChunkName: "pdfjs-dist" */ `pdfjs-dist/web/pdf_viewer.js`)
+const log = console.log.bind(console, '[highlighter]')
+
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc
 
 export default {
   page: {
-    title: 'PDF',
+    title: 'pdfjs+web-highlighter',
   },
-  components: {  },
+  components: { PDFPage },
   data() {
     return {
-      title: 'PDF',
-      src: '/1.pdf',
-      screenWidth: '',
-      screenHeight: '',
-      numPages: undefined,
-      currentPage: 1,
-      pageCount: 0,
-      scale:1.5,
+      url:'/1.pdf',
+      numPages: 0,
+      loadingTask: null,
       x: 0,
       y: 0,
-      showTools: false
-    }
-  },
-  computed:{
-    highlightableEl () {
-      return this.$refs.tip
+      isShowTools: false,
+      isSelected:false,
+      curID:'',
+      highlighter:null,
+      store:null,
     }
   },
   mounted(){
-    this.getWH()
-    // this.renderPdf('/1.pdf')
-    this.pageViewer('/1.pdf', 1)
+    // this.getWH()
+    this.pageViewer(this.url)
+    this.initHighLighter(this.highlighter)
   },
+
   methods:{
-    // 获取浏览器内部的宽高
-    getWH(){
+    // 初始化web-highlighter插件
+    initHighLighter(){
       let vm = this
-      vm.screenWidth = window.innerWidth
-      vm.screenHeight = window.innerHeight
-      window.onresize = () => {
-        return (() => {
-          vm.screenWidth = window.innerWidth
-          vm.screenHeight = window.innerHeight
-        })()
-      }
-    },
-    async pageViewer(url, curPage){
-      let vm = this
-      // const CMAP_URL = "../../../../../node_modules/pdfjs-dist/cmaps/"
-      // const CMAP_PACKED = true
 
-      // const DEFAULT_URL = url
-      // const PAGE_TO_VIEW = page
-      const SCALE = 1.0
-
-      const container = vm.$refs.pageContainer
-      // const pdfText = vm.$refs.pdfText
-
-      const eventBus = new pdfjsViewer.EventBus();
-
-      // Loading document.
-      // let loadingTask = await pdfjsLib.getDocument({
-      //   url: DEFAULT_URL,
-      //   // cMapUrl: CMAP_URL,
-      //   // cMapPacked: CMAP_PACKED,
-      // }).promise
-      const loadingTask = await pdfjsLib.getDocument(url).promise
-
-      const page = await loadingTask.getPage(curPage)
-      const textContent = await page.getTextContent()
-      console.log(textContent)
-      let desiredHeight = vm.screenHeight
-      let viewport = page.getViewport({ scale: SCALE })
-      let scale = desiredHeight / viewport.height
-      let scaledViewport = page.getViewport({ scale: scale })
-
-      // Creating the page view with default parameters.
-      const pdfPageView = new pdfjsViewer.PDFPageView({
-        container: container,
-        id: curPage,
-        scale: scale,
-        defaultViewport: scaledViewport,
-        eventBus: eventBus,
-        // We can enable text/annotations layers, if needed
-        // textLayerFactory: textLayer,
-        textLayerFactory: new pdfjsViewer.DefaultTextLayerFactory(),
-        // annotationLayerFactory: new pdfjsViewer.DefaultAnnotationLayerFactory(),
+      vm.highlighter = new Highlighter({
+        wrapTag: 'span',
+        exceptSelectors: ['pre', 'code'],
+        style:{
+          className:'highLight'
+        }
       })
-      // Associates the actual page with the view, and drawing it
-      pdfPageView.setPdfPage(page)
-      pdfPageView.draw()
+
+      vm.highlighter
+      .on(Highlighter.event.HOVER, ({id}) => {
+
+          const selection = window.getSelection()
+          vm.isShowTools = true
+          vm.isSelected = true
+          vm.curID = id
+          // 鼠标放置高亮文本处，改变样式
+          vm.highlighter.addClass('highlight-wrap-hover', id)
+          
+          if(selection.isCollapsed){
+            // 未选中文本
+            console.log(window.event)
+            console.log(window.event.target)
+            console.log(window.event.target.getBoundingClientRect())
+            vm.getToolLocation(window.event.target)
+
+          }else{
+            // 选中文本
+            const range = selection.getRangeAt(0)
+            vm.isSelected = false
+            vm.getToolLocation(range)
+
+          }
+
+      })
+      .on(Highlighter.event.HOVER_OUT, ({id}) => {
+          // remove the hover effect when leaving
+          vm.curID = id
+          vm.highlighter.removeClass('highlight-wrap-hover', id);
+      })
+      .on(Highlighter.event.CREATE, ({sources}) => {
+          log('create -', sources);
+          vm.curID = sources.id
+          sources = sources.map(hs => ({hs}))
+          // save to backend
+          vm.store.save(sources)
+          vm.isShowTools = false
+          vm.isSelected = false
+      })
+      .on(Highlighter.event.REMOVE, ({ids}) => {
+          ids.forEach(id => {
+            vm.curID = id
+            vm.store.remove(id)
+          })
+          vm.isShowTools = false
+          vm.isSelected = false
+      })
     },
-    // range(){
-    //   const selection = window.getSelection()
-    //   // 判断选区起始点是否在同一个位置
-    //   if (selection.isCollapsed) {
-    //     console.debug('no text selected')
-    //     return null;
-    //   }
-    //   console.log(selection)
-    //   console.log(selection.toString())
-    //   console.log(selection.getRangeAt(0))
 
-    //   const range = selection.getRangeAt(0)
-    //   const rangeList = range.getClientRects()
-    //   console.log(range.getClientRects())
+    // 计算按钮位置
+    getToolLocation(node){
 
-    //   const start = {
-    //     startContainer: range.startContainer,
-    //     startOffset: range.startOffset
-    //   }
-    //   const end = {
-    //     endContainer: range.endContainer,
-    //     endOffset: range.endOffset
-    //   }
+      const { x, y, width } = node.getBoundingClientRect()
+      this.x = x + (width / 2)
+      this.y = y + window.scrollY - 10
 
-    //   const RANGE_COUNT = selection.rangeCount
-    //   const startNode = range.startContainer
-    //   const endNode = range.endContainer
-    //   let selectedNodes = []
-    //   let curNode = startNode
+    },
 
-    //   // if(RANGE_COUNT === 1){
-    //   //   if(curNode.nodeType === 3){
-    //   //     curNode.splitText(start.startOffset)
-    //   //   }
-    //   // }
+    // pdf加载
+    async pageViewer(url){
 
-    //   // for(let i = 0;i < RANGE_COUNT; i++){
-    //   //   if(curNode === startNode){
-    //   //     if(curNode.nodeType === 3){
-    //   //       curNode.splitText(start.startOffset)
-    //   //       const node = curNode.nextSibling
-    //   //       selectedNodes.push(node)
-    //   //     }
-    //   //   }
+      this.loadingTask = await pdfjsLib.getDocument(url).promise
+      this.numPages = this.loadingTask.numPages
 
-    //   //   if(curNode === endNode){
-    //   //     if(curNode.nodeType === 3){
-    //   //       const node = curNode
-    //   //       node.splitText(end.endOffset)
-    //   //       selectedNodes.push(node)
-    //   //     }
-    //   //   }
-    //   //   curNode = curNode.nextSibling
-    //   // }
-    //   // console.log(selectedNodes)
-    //   // 首尾节点拆分
-    //   // const startNode = start.startContainer.splitText(start.startOffset)
-    //   // console.log(startNode)
-    //   // 创建一个<i>的标签
-    //   const i = document.createElement('i')
-    //   i.className = 'highLight'
-    //   i.innerHTML = selection.toString()
-    //   console.log(i)
-    //   // start.startContainer.parentNode.insertBefore(i, startNode)
-    // },
+    },
+
+    // 选中文本触发事件
     range(){
-      let vm = this
+
       const selection = window.getSelection()
       // 判断选区起始点是否在同一个位置
       if (selection.isCollapsed) {
         console.debug('no text selected')
-        return null;
+        return
       }
-      vm.selectionTool(selection)
+      this.selectionTool(selection)
 
-      console.log(selection)
-      console.log(selection.toString())
-      console.log(selection.getRangeAt(0))
     },
-    getSelectionRange(root, range){
 
-      const {
-        startContainer,
-        endContainer,
-        startOffset,
-        endOffset
-      } = range
-
-      let selectedNodes = []
-      
-      // 选中区域在一个节点内
-      if(startContainer === endContainer){
-
-        startContainer.splitText(startOffset)
-        let passedNode = startContainer.nextSibling
-        passedNode.splitText(endOffset - startOffset)
-
-        selectedNodes.push(passedNode)
-        return selectedNodes
-
-      }
-
-      // 选中区域包含多个节点
-      let curNode = root
-      let withinSelectedRange = false
-      let treeWalker = document.createTreeWalker(curNode, NodeFilter.SHOW_TEXT, null, false)
-
-      while(curNode != null){
-        if(curNode.nodeType === 3){
-          
-          if(curNode === startContainer){
-
-            curNode.splitText(startOffset)
-            const node = curNode.nextSibling
-            selectedNodes.push(node)
-
-            curNode = treeWalker.nextNode()
-
-            withinSelectedRange = true
-
-          }else if(curNode === endContainer){
-
-            const node = curNode
-            node.splitText(endOffset)
-            selectedNodes.push(node)
-
-            withinSelectedRange = false
-
-            return selectedNodes
-
-          }else if(withinSelectedRange){
-
-            selectedNodes.push(curNode)
-
-          }
-        }
-        
-        curNode = treeWalker.nextNode()
-        console.log(curNode)
-      }
-    },
-    // 绘制高亮
-    drawHighLight(selectedNodes){
-
-      selectedNodes.forEach(node => {
-
-        const mark = document.createElement('mark')
-        
-        mark.appendChild(node.cloneNode(false))
-        node.parentNode.replaceChild(mark, node)
-
-      })
-    },
+    // 选中文本弹出按钮
     selectionTool(selection){
-      // const selection = window.getSelection()
-      // const range = selection.getRangeAt(0)
+
+      this.isSelected = false
 
       if (selection.isCollapsed) {
-        this.showTools = false
+        this.isShowTools = false
         return
       }
 
-      const { x, y, width } = selection.getRangeAt(0).getBoundingClientRect()
+      const range = selection.getRangeAt(0)
+      this.getToolLocation(range)
+      this.isShowTools = true
       
-      this.x = x + (width / 2)
-      this.y = y + window.scrollY - 10
-      this.showTools = true
-      this.selectedText = selection.toString() 
     },
+
+    // 高亮文本
     highLight(){
-      let vm = this
+
       const selection = window.getSelection()
       const range = selection.getRangeAt(0)
-      console.log(range.getClientRects())
-      
-      const selectedNodes = vm.getSelectionRange(vm.$refs.pageContainer, range)
-      console.log(selectedNodes)
+      // 使用web-highlighter高亮文本
+      this.highlighter.fromRange(range)
 
-      vm.drawHighLight(selectedNodes)
-      vm.showTools = false
+      this.isShowTools = false
+      this.isSelected = false
+      selection.removeRange(range)
+
     },
+    // 删除高亮
     delHighLight(){
-      let vm = this
-      const selection = window.getSelection()
-      selection.removeRange(selection.getRangeAt(0))
-      vm.showTools = false
+
+      this.highlighter.remove(this.curID)
+      this.isShowTools = false
+
     },
+    // 已保存的高亮显示
+    storedHighLight(){
+
+      console.log('显示已保存高亮')
+      let vm = this
+      vm.store = new LocalStore()
+      vm.store.getAll().forEach(
+          // hs is the same data saved by 'store.save(sources)'
+        ({hs}) => {
+          console.log(hs)
+          vm.highlighter.fromStore(hs.startMeta, hs.endMeta, hs.text, hs.id)
+        }
+      )
+
+    }
   }
 }
 </script>
 
 <template>
   <div>
-    <div ref="pageContainer" class="pdfViewer singlePageView" @mouseup="range">
+    <!-- <div ref="pageContainer" class="pdfViewer singlePageView" @mouseup="range">
+    </div> -->
+    <div @mouseup="range">
+      <PDFPage
+      v-for="n in numPages"
+      :key="n"
+      :loading-task="loadingTask"
+      :cur-page="n"
+      :num-pages="numPages"
+      @isPdfCompleted="storedHighLight"
+      />
     </div>
+    
     <div
-      v-show="showTools"
+      v-show="isShowTools"
       ref="tip"
       class="tools"
       :style="{
@@ -302,12 +211,14 @@ export default {
       @mousedown.prevent=""
     >
       <span
+        v-show="!isSelected"
         class="item"
         @click="highLight"
       >
         <i class="uil uil-pen"></i>
       </span>
       <span
+        v-show="isSelected"
         class="item"
         @click="delHighLight"
       >
@@ -377,13 +288,7 @@ export default {
   .item:hover{
     color: #1199ff;
   }
-  mark{
-    color: transparent;
-    background: #fc0;
-    user-select: none;
-    cursor: pointer;
-  }
-  mark:hover{
-    filter: brightness(95%);
+  .highLight{
+    background-color: #fc0;
   }
 </style>

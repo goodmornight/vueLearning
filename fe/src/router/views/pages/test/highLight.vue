@@ -141,20 +141,22 @@ export default {
 
     // 计算按钮位置
     getToolLocation(node){
+
       const { x, y, width } = node.getBoundingClientRect()
       this.x = x + (width / 2)
       this.y = y + window.scrollY - 10
+
     },
+
     // pdf加载
     async pageViewer(url, curPage){
+
       const loadingTask = await pdfjsLib.getDocument(url).promise
       const page = await loadingTask.getPage(curPage)
 
       const SCALE = 1.0
       const container = this.$refs.pageContainer
-      const eventBus = new pdfjsViewer.EventBus();
-      
-      const textContent = await page.getTextContent()
+      const eventBus = new pdfjsViewer.EventBus()
 
       let desiredHeight = this.screenHeight
       let viewport = page.getViewport({ scale: SCALE })
@@ -174,35 +176,7 @@ export default {
       // Associates the actual page with the view, and drawing it
       this.pdfPageView.setPdfPage(page)
       this.pdfPageView.draw()
-      // 
-      // var eventBus = new pdfjsViewer.EventBus();
 
-      // // Loading document.
-      // var loadingTask = pdfjsLib.getDocument({
-      //   url: '/1.pdf'
-      // });
-      // loadingTask.promise.then(function (pdfDocument) {
-      //   // Document loaded, retrieving the page.
-      //   return pdfDocument.getPage(1).then(function (pdfPage) {
-      //     // Creating the page view with default parameters.
-      //     var pdfPageView = new pdfjsViewer.PDFPageView({
-      //       container: container,
-      //       id: 1,
-      //       scale: SCALE,
-      //       defaultViewport: pdfPage.getViewport({ scale: SCALE }),
-      //       eventBus: eventBus,
-      //       // We can enable text/annotations layers, if needed
-      //       textLayerFactory: new pdfjsViewer.DefaultTextLayerFactory(),
-      //       annotationLayerFactory: new pdfjsViewer.DefaultAnnotationLayerFactory(),
-      //     });
-      //     // Associates the actual page with the view, and drawing it
-      //     pdfPageView.setPdfPage(pdfPage);
-      //     return pdfPageView.draw();
-      //   });
-      // }).then(()=>{
-      //   // vm.initHighLighter(vm.highlighter)
-      //   vm.test()
-      // })
     },
 
     // 选中文本触发事件
@@ -251,10 +225,12 @@ export default {
     },
     // 删除高亮
     delHighLight(){
-      let vm = this
+
       this.highlighter.remove(this.curID)
       this.isShowTools = false
+
     },
+    // 已保存的高亮显示
     storedHighLight(){
       let vm = this
       vm.store = new LocalStore()

@@ -497,10 +497,10 @@ const testRoutes = [
               lazyLoadView(import('@views/pages/test/pdfjs'))
           },
           {
-            path: 'pdfViewer',
+            path: 'singlePdfViewer',
             name: 'pdfViewer加载+自定义高亮',
             component: () =>
-              lazyLoadView(import('@views/pages/test/pdfViewer'))
+              lazyLoadView(import('@views/pages/test/singlePdfViewer'))
           },
           {
             path: 'highLightText',
@@ -519,6 +519,12 @@ const testRoutes = [
             name: '插件web-highlighter',
             component: () =>
               lazyLoadView(import('@views/pages/test/webHighLighter'))
+          },
+          {
+            path: 'pdfViewer',
+            name: '查看整篇pdf',
+            component: () =>
+              lazyLoadView(import('@views/pages/test/pdfViewer'))
           },
         ],
       },
