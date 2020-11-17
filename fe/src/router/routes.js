@@ -526,6 +526,12 @@ const testRoutes = [
             component: () =>
               lazyLoadView(import('@views/pages/test/pdfViewer'))
           },
+          {
+            path: 'singlePdfViewerTest',
+            name: 'singlePdfViewer测试',
+            component: () =>
+              lazyLoadView(import('@views/pages/test/singlePdfViewerTest'))
+          },
         ],
       },
       
