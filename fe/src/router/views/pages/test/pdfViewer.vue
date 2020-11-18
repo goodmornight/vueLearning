@@ -1,7 +1,8 @@
 <script>
 // pdfViewer加载+web-highlighter高亮
 import PDFPage from '@components/test/pdfPage'
-import PDFTools from '@components/test/pdfTools'
+import PDFSideBar from '@components/test/pdfSideBar'
+// import PDFTools from '@components/test/pdfTools'
 import Highlighter from 'web-highlighter'
 import LocalStore from '@utils/webHighLighter/local.store'
 import workerSrc from '!!file-loader!pdfjs-dist/build/pdf.worker.js'
@@ -19,7 +20,8 @@ export default {
   },
   components: {
     PDFPage,
-    PDFTools
+    // PDFTools,
+    PDFSideBar
   },
   data() {
     return {
@@ -187,7 +189,10 @@ export default {
         }
       )
 
-    }
+    },
+    toggleRightSidebar() {
+      document.body.classList.toggle('right-bar-enabled')
+    },
   }
 }
 </script>
@@ -234,7 +239,7 @@ export default {
         </span>
         <span
           class="item"
-          @click="highLight"
+          @click="toggleRightSidebar"
         >
           <i class="uil uil-comment-notes"></i>
         </span>
@@ -247,8 +252,8 @@ export default {
           <i class="uil uil-trash"></i>
         </span>
       </span>
-      
     </div>
+    <PDFSideBar />
   </div>
 </template>
 
