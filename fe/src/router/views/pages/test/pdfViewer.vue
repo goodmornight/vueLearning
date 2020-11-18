@@ -127,14 +127,13 @@ export default {
     range(){
 
       const selection = window.getSelection()
-      console.log(selection)
       // 判断选区起始点是否在同一个位置
       if (selection.isCollapsed) {
 
         this.isShowTools = false
         console.debug('no text selected')
         return
-        
+
       }
       this.selectionTool(selection)
 
@@ -160,11 +159,15 @@ export default {
     highLight(){
       console.log('高亮')
       const selection = window.getSelection()
-      console.log(selection)
       const range = selection.getRangeAt(0)
-      console.log(range)
+      this.highlighter.setOption({
+        style:{
+          className:'test'
+        }
+      })
       // 使用web-highlighter高亮文本
       this.highlighter.fromRange(range)
+
 
       this.isShowTools = false
       this.isSelected = false
@@ -331,5 +334,8 @@ export default {
   }
   .highLight{
     background-color: #fc0;
+  }
+  .test{
+    background-color: #000;
   }
 </style>
