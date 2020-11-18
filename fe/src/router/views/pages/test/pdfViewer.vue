@@ -1,6 +1,7 @@
 <script>
 // pdfViewer加载+web-highlighter高亮
 import PDFPage from '@components/test/pdfPage'
+import PDFTools from '@components/test/pdfTools'
 import Highlighter from 'web-highlighter'
 import LocalStore from '@utils/webHighLighter/local.store'
 import workerSrc from '!!file-loader!pdfjs-dist/build/pdf.worker.js'
@@ -16,7 +17,10 @@ export default {
   page: {
     title: 'pdf整篇显示',
   },
-  components: { PDFPage },
+  components: {
+    PDFPage,
+    PDFTools
+  },
   data() {
     return {
       url:'/1.pdf',
@@ -28,7 +32,7 @@ export default {
       isSelected:false,
       curID:'',
       highlighter:null,
-      store:null,
+      store:null
     }
   },
   mounted(){
@@ -121,6 +125,7 @@ export default {
     range(){
 
       const selection = window.getSelection()
+      console.log(selection)
       // 判断选区起始点是否在同一个位置
       if (selection.isCollapsed) {
         console.debug('no text selected')
@@ -148,9 +153,11 @@ export default {
 
     // 高亮文本
     highLight(){
-
+      console.log('高亮')
       const selection = window.getSelection()
+      console.log(selection)
       const range = selection.getRangeAt(0)
+      console.log(range)
       // 使用web-highlighter高亮文本
       this.highlighter.fromRange(range)
 
@@ -161,7 +168,7 @@ export default {
     },
     // 删除高亮
     delHighLight(){
-
+      console.log('删除高亮')
       this.highlighter.remove(this.curID)
       this.isShowTools = false
 
@@ -199,6 +206,14 @@ export default {
       @isPdfCompleted="storedHighLight"
       />
     </div>
+    <!-- <PDFTools
+      v-show="isShowTools"
+      :x="x"
+      :y="y"
+      :is-selected="isSelected"
+      @highLight="highLight"
+      @delHighLight="delHighLight"
+    /> -->
     
     <div
       v-show="isShowTools"
@@ -210,20 +225,29 @@ export default {
       }"
       @mousedown.prevent=""
     >
-      <span
-        v-show="!isSelected"
-        class="item"
-        @click="highLight"
-      >
-        <i class="uil uil-pen"></i>
+      <span v-show="!isSelected">
+        <span
+          class="item"
+          @click="highLight"
+        >
+          <i class="uil uil-pen"></i>
+        </span>
+        <span
+          class="item"
+          @click="highLight"
+        >
+          <i class="uil uil-comment-notes"></i>
+        </span>
       </span>
-      <span
-        v-show="isSelected"
-        class="item"
-        @click="delHighLight"
-      >
-        <i class="uil uil-trash"></i>
+      <span v-show="isSelected">
+        <span
+          class="item"
+          @click="delHighLight"
+        >
+          <i class="uil uil-trash"></i>
+        </span>
       </span>
+      
     </div>
   </div>
 </template>
@@ -238,9 +262,6 @@ export default {
     font-size: 16px;
     /*line-height: 32px;*/
     margin: 10% auto;
-  }
-  .highLight{
-    background-color: #ff8
   }
   .tools{
     height: 30px;
@@ -271,14 +292,26 @@ export default {
   }
 
   .item{
-    color: #FFF;
+    color: #fff;
     cursor: pointer;
     display: inline-block;
     font-size: 18px;
+    margin-left: 8px;
+    padding-right: 5px;
+    border-right: #fff 1px solid;
+  }
+
+  .item:first-child{
+    margin-left: 0;
+  }
+  
+  .item:last-child{
+    padding-right: 0;
+    border: none;
   }
 
   .item path{
-    fill: #FFF;
+    fill: #fff;
   }
 
   .item:hover path{
