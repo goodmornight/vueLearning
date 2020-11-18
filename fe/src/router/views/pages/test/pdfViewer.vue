@@ -50,7 +50,7 @@ export default {
 
       vm.highlighter = new Highlighter({
         wrapTag: 'span',
-        exceptSelectors: ['pre', 'code'],
+        exceptSelectors: ['pre', 'code', 'h6'],
         style:{
           className:'highLight'
         }
@@ -130,8 +130,11 @@ export default {
       console.log(selection)
       // 判断选区起始点是否在同一个位置
       if (selection.isCollapsed) {
+
+        this.isShowTools = false
         console.debug('no text selected')
         return
+        
       }
       this.selectionTool(selection)
 
