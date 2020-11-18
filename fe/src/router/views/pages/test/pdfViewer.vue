@@ -1,28 +1,27 @@
 <script>
 // pdfViewer加载+web-highlighter高亮
+import PDFPage from '@components/test/pdfPage'
 import Highlighter from 'web-highlighter'
 import LocalStore from '@utils/webHighLighter/local.store'
-import { authComputed } from '@state/helpers'
 import workerSrc from '!!file-loader!pdfjs-dist/build/pdf.worker.js'
 import 'pdfjs-dist/web/pdf_viewer.css'
 import '@src/design/highlighter/my.css'
 
 const pdfjsLib = require(/* webpackChunkName: "pdfjs-dist" */ `pdfjs-dist`)
-const pdfjsViewer = require(/* webpackChunkName: "pdfjs-dist" */ `pdfjs-dist/web/pdf_viewer.js`)
 const log = console.log.bind(console, '[highlighter]')
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc
 
 export default {
   page: {
-    title: 'pdfjs+web-highlighter',
+    title: 'pdf整篇显示',
   },
-  components: {  },
+  components: { PDFPage },
   data() {
     return {
-      screenWidth: '',
-      screenHeight: '',
-      pdfPageView: null,
+      url:'/1.pdf',
+      numPages: 0,
+      loadingTask: null,
       x: 0,
       y: 0,
       isShowTools: false,
@@ -32,41 +31,13 @@ export default {
       store:null,
     }
   },
-  computed:{
-    ...authComputed,
-    renderingState(){
-      return this.pdfPageView.textLayer.renderingDone
-    },
-
-  },
-  watch:{
-    'pdfPageView.textLayer.renderingDone':function(newVal,oldVal){
-      let vm = this
-      console.log(newVal)
-      if(newVal){
-        vm.storedHighLight()
-      }
-    },
-  },
   mounted(){
-    this.getWH()
-    this.pageViewer('/1.pdf', 1)
+    // this.getWH()
+    this.pageViewer(this.url)
     this.initHighLighter(this.highlighter)
   },
 
   methods:{
-    // 获取浏览器内部的宽高
-    getWH(){
-      let vm = this
-      vm.screenWidth = window.innerWidth
-      vm.screenHeight = window.innerHeight
-      window.onresize = () => {
-        return (() => {
-          vm.screenWidth = window.innerWidth
-          vm.screenHeight = window.innerHeight
-        })()
-      }
-    },
     // 初始化web-highlighter插件
     initHighLighter(){
       let vm = this
@@ -78,16 +49,6 @@ export default {
           className:'highLight'
         }
       })
-      // vm.store = new LocalStore()
-
-      // // retrieve data from store, and display highlights on the website
-      // vm.store.getAll().forEach(
-      //     // hs is the same data saved by 'store.save(sources)'
-      //   ({hs}) => {
-      //     console.log(hs)
-      //     vm.highlighter.fromStore(hs.startMeta, hs.endMeta, hs.text, hs.id)
-      //   }
-      // )
 
       vm.highlighter
       .on(Highlighter.event.HOVER, ({id}) => {
@@ -149,38 +110,16 @@ export default {
     },
 
     // pdf加载
-    async pageViewer(url, curPage){
+    async pageViewer(url){
 
-      const loadingTask = await pdfjsLib.getDocument(url).promise
-      const page = await loadingTask.getPage(curPage)
-
-      const SCALE = 1.0
-      const container = this.$refs.pageContainer
-      const eventBus = new pdfjsViewer.EventBus()
-
-      let desiredHeight = this.screenHeight
-      let viewport = page.getViewport({ scale: SCALE })
-      let scale = desiredHeight / viewport.height
-      let scaledViewport = page.getViewport({ scale: scale })
-
-      // Creating the page view with default parameters.
-      this.pdfPageView = new pdfjsViewer.PDFPageView({
-        container: container,
-        id: curPage,
-        scale: scale,
-        defaultViewport: scaledViewport,
-        eventBus: eventBus,
-        textLayerFactory: new pdfjsViewer.DefaultTextLayerFactory(),
-      })
-
-      // Associates the actual page with the view, and drawing it
-      this.pdfPageView.setPdfPage(page)
-      this.pdfPageView.draw()
+      this.loadingTask = await pdfjsLib.getDocument(url).promise
+      this.numPages = this.loadingTask.numPages
 
     },
 
     // 选中文本触发事件
     range(){
+
       const selection = window.getSelection()
       // 判断选区起始点是否在同一个位置
       if (selection.isCollapsed) {
@@ -189,9 +128,6 @@ export default {
       }
       this.selectionTool(selection)
 
-      console.log(selection)
-      console.log(selection.toString())
-      console.log(selection.getRangeAt(0))
     },
 
     // 选中文本弹出按钮
@@ -232,6 +168,8 @@ export default {
     },
     // 已保存的高亮显示
     storedHighLight(){
+
+      console.log('显示已保存高亮')
       let vm = this
       vm.store = new LocalStore()
       vm.store.getAll().forEach(
@@ -241,6 +179,7 @@ export default {
           vm.highlighter.fromStore(hs.startMeta, hs.endMeta, hs.text, hs.id)
         }
       )
+
     }
   }
 }
@@ -248,8 +187,19 @@ export default {
 
 <template>
   <div>
-    <div ref="pageContainer" class="pdfViewer singlePageView" @mouseup="range">
+    <!-- <div ref="pageContainer" class="pdfViewer singlePageView" @mouseup="range">
+    </div> -->
+    <div @mouseup="range">
+      <PDFPage
+      v-for="n in numPages"
+      :key="n"
+      :loading-task="loadingTask"
+      :cur-page="n"
+      :num-pages="numPages"
+      @isPdfCompleted="storedHighLight"
+      />
     </div>
+    
     <div
       v-show="isShowTools"
       ref="tip"

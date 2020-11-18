@@ -22,35 +22,24 @@ export default {
     return {
       screenWidth: '',
       screenHeight: '',
-      pdfPageView: null,
+      pdfSinglePageViewer: null,
       x: 0,
       y: 0,
       isShowTools: false,
       isSelected:false,
       curID:'',
       highlighter:null,
-      store:null,
+      store:null
     }
   },
+
   computed:{
     ...authComputed,
-    renderingState(){
-      return this.pdfPageView.textLayer.renderingDone
-    },
+  },
 
-  },
-  watch:{
-    'pdfPageView.textLayer.renderingDone':function(newVal,oldVal){
-      let vm = this
-      console.log(newVal)
-      if(newVal){
-        vm.storedHighLight()
-      }
-    },
-  },
   mounted(){
     this.getWH()
-    this.pageViewer('/1.pdf', 1)
+    this.pageViewer('/1.pdf')
     this.initHighLighter(this.highlighter)
   },
 
@@ -78,16 +67,6 @@ export default {
           className:'highLight'
         }
       })
-      // vm.store = new LocalStore()
-
-      // // retrieve data from store, and display highlights on the website
-      // vm.store.getAll().forEach(
-      //     // hs is the same data saved by 'store.save(sources)'
-      //   ({hs}) => {
-      //     console.log(hs)
-      //     vm.highlighter.fromStore(hs.startMeta, hs.endMeta, hs.text, hs.id)
-      //   }
-      // )
 
       vm.highlighter
       .on(Highlighter.event.HOVER, ({id}) => {
@@ -150,33 +129,55 @@ export default {
 
     // pdf加载
     async pageViewer(url, curPage){
+      let vm = this
 
-      const loadingTask = await pdfjsLib.getDocument(url).promise
-      const page = await loadingTask.getPage(curPage)
+      let SEARCH_FOR = ""; // try 'Mozilla';
 
-      const SCALE = 1.0
-      const container = this.$refs.pageContainer
-      const eventBus = new pdfjsViewer.EventBus()
+      let container = this.$refs.viewerContainer
 
-      let desiredHeight = this.screenHeight
-      let viewport = page.getViewport({ scale: SCALE })
-      let scale = desiredHeight / viewport.height
-      let scaledViewport = page.getViewport({ scale: scale })
+      let eventBus = new pdfjsViewer.EventBus();
 
-      // Creating the page view with default parameters.
-      this.pdfPageView = new pdfjsViewer.PDFPageView({
-        container: container,
-        id: curPage,
-        scale: scale,
-        defaultViewport: scaledViewport,
+      // (Optionally) enable hyperlinks within PDF files.
+      let pdfLinkService = new pdfjsViewer.PDFLinkService({
         eventBus: eventBus,
-        textLayerFactory: new pdfjsViewer.DefaultTextLayerFactory(),
+      });
+
+      // (Optionally) enable find controller.
+      let pdfFindController = new pdfjsViewer.PDFFindController({
+        eventBus: eventBus,
+        linkService: pdfLinkService,
       })
 
-      // Associates the actual page with the view, and drawing it
-      this.pdfPageView.setPdfPage(page)
-      this.pdfPageView.draw()
+      this.pdfSinglePageViewer = new pdfjsViewer.PDFSinglePageViewer({
+        container: container,
+        eventBus: eventBus,
+        linkService: pdfLinkService,
+        findController: pdfFindController,
+      })
 
+      pdfLinkService.setViewer(this.pdfSinglePageViewer)
+
+      eventBus.on("pagesinit", function () {
+        // We can use pdfSinglePageViewer now, e.g. let's change default scale.
+        vm.pdfSinglePageViewer.currentScaleValue = "page-width"
+
+        // We can try searching for things.
+        if (SEARCH_FOR) {
+          pdfFindController.executeCommand("find", { query: SEARCH_FOR })
+        }
+      });
+
+      // Loading document.
+      var loadingTask = pdfjsLib.getDocument({
+        url: url
+      })
+      loadingTask.promise.then(function (pdfDocument) {
+        // Document loaded, specifying document for the viewer and
+        // the (optional) linkService.
+        vm.pdfSinglePageViewer.setDocument(pdfDocument);
+
+        pdfLinkService.setDocument(pdfDocument, null);
+      })
     },
 
     // 选中文本触发事件
@@ -248,8 +249,11 @@ export default {
 
 <template>
   <div>
-    <div ref="pageContainer" class="pdfViewer singlePageView" @mouseup="range">
+    <div id="viewerContainer" ref="viewerContainer" @mouseup="range">
+      <div id="viewer" ref="viewer" class="pdfViewer"></div>
     </div>
+    <!-- <div ref="pageContainer" class="pdfViewer singlePageView" @mouseup="range">
+    </div> -->
     <div
       v-show="isShowTools"
       ref="tip"
