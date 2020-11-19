@@ -1,16 +1,16 @@
 //
 // right-sidebar.scss
 //
-
-.right-bar {
+$pdf-right-bar-width: 500px;
+.pdf-right-bar {
   position: fixed;
   top: 0;
-  right: -($rightbar-width + 10px);
+  right: -($pdf-right-bar-width + 10px);
   bottom: 0;
   z-index: 9999;
   display: block;
   float: right !important;
-  width: $rightbar-width;
+  width: $pdf-right-bar-width;
   padding-bottom: 60px;
   background-color: $bg-rightbar;
   box-shadow: 0 0 24px 0 rgba(0, 0, 0, 0.06), 0 1px 0 0 rgba(0, 0, 0, 0.02);
@@ -20,7 +20,7 @@
     // border-bottom: 2px solid $gray-300;
     padding: 25px 25px;
   }
-  .right-bar-toggle {
+  .pdf-right-bar-toggle {
     width: 24px;
     height: 24px;
     margin-top: -4px;
@@ -33,21 +33,21 @@
   }
 }
 
-// Rightbar overlay
-.rightbar-overlay {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 9998;
-  display: none;
-  background-color: rgba($dark, 0.55);
-  transition: all 0.2s ease-out;
-}
+// // Rightbar overlay
+// .rightbar-overlay {
+//   position: absolute;
+//   top: 0;
+//   right: 0;
+//   bottom: 0;
+//   left: 0;
+//   z-index: 9998;
+//   display: none;
+//   background-color: rgba($dark, 0.55);
+//   transition: all 0.2s ease-out;
+// }
 
-.right-bar-enabled {
-  .right-bar {
+.pdf-right-bar-enabled {
+  .pdf-right-bar {
     right: 0;
   }
   .rightbar-overlay {
@@ -56,7 +56,7 @@
 }
 
 @include media-breakpoint-down(sm) {
-  .right-bar {
+  .pdf-right-bar {
     overflow: auto;
     .slimscroll-menu {
       height: auto !important;

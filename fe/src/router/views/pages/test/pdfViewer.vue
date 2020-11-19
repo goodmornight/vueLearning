@@ -65,7 +65,7 @@ export default {
           console.log(type)
           vm.curID = sources.id
           vm.styleControl(sources)
-          
+
           sources = sources.map(hs => ({hs}))
           // save to backend
           vm.store.save(sources)
@@ -116,7 +116,7 @@ export default {
       if(!sources.length || !sources[0].extra) return
 
       const { id, extra } = sources[0]
-      const { className:style } = extra
+      const { className: style } = extra
 
       if(style === this.defaultStyle) return
 
@@ -178,11 +178,6 @@ export default {
       console.log('高亮')
       const selection = window.getSelection()
       const range = selection.getRangeAt(0)
-      this.highlighter.setOption({
-        style:{
-          className:className
-        }
-      })
 
       // 为选区序列化时的持久化数据生成额外信息
       this.highlighter.hooks.Serialize.RecordInfo.tap(function (start, end, root) {
@@ -195,15 +190,19 @@ export default {
       this.highlighter.fromRange(range)
       
       // 操作高亮包裹后的元素
-      this.highlighter.hooks.Render.WrapNode.tap(function (id, node) {
-        console.log(id)
-        console.log(node)
-      })
+      // this.highlighter.hooks.Render.WrapNode.tap(function (id, node) {
+      //   console.log(id)
+      //   console.log(node)
+      // })
 
       this.isShowTools = false
       this.isSelected = false
       selection.removeRange(range)
 
+    },
+    dashedUnderLine(){
+      this.highLight('dashedUnderLine')
+      this.toggleRightSidebar()
     },
     // 删除高亮
     delHighLight(){
@@ -216,27 +215,14 @@ export default {
     // 已保存的高亮显示
     storedHighLight(){
 
-      console.log('显示已保存高亮')
-      let vm = this
-      // // 自定义还原（反序列化）方法
-      // this.highlighter.hooks.Serialize.Restore.tap(function (hs) {
-      //   log('Serialize.Restore hook -', hs)
-      //   console.log(hs.extra.className)
-      // })
-      // vm.store = new LocalStore()
-      vm.store.getAll().forEach(
-          // hs is the same data saved by 'store.save(sources)'
-        ({hs}) => {
-          console.log(hs)
+      const vm = this
 
-          vm.highlighter.fromStore(hs.startMeta, hs.endMeta, hs.text, hs.id, hs.extra)
-        }
-      )
-
+      vm.store.getAll().forEach(({hs}) => {
+        vm.highlighter.fromStore(hs.startMeta, hs.endMeta, hs.text, hs.id, hs.extra)
+      })
     },
     toggleRightSidebar() {
-      this.highLight('dashedUnderLine')
-      document.body.classList.toggle('right-bar-enabled')
+      document.body.classList.toggle('pdf-right-bar-enabled')
     },
   }
 }
@@ -275,7 +261,23 @@ export default {
       }"
       @mousedown.prevent=""
     >
-      <span v-show="!isSelected">
+
+      <span
+        v-if="!isSelected"
+        class="item"
+        @click="highLight('highLight')"
+      >
+        <i class="uil uil-pen"></i>
+      </span>
+      <span
+        v-if="!isSelected"
+        class="item"
+        @click="dashedUnderLine"
+      >
+        <i class="uil uil-comment-notes"></i>
+      </span>
+
+      <!-- <span v-show="!isSelected">
         <span
           class="item"
           @click="highLight('highLight')"
@@ -288,15 +290,16 @@ export default {
         >
           <i class="uil uil-comment-notes"></i>
         </span>
+      </span> -->
+
+      <span
+        v-if="isSelected"
+        class="item"
+        @click="delHighLight"
+      >
+        <i class="uil uil-trash"></i>
       </span>
-      <span v-show="isSelected">
-        <span
-          class="item"
-          @click="delHighLight"
-        >
-          <i class="uil uil-trash"></i>
-        </span>
-      </span>
+
     </div>
     <PDFSideBar />
   </div>

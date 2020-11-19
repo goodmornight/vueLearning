@@ -14,7 +14,7 @@ export default {
         middleware: this.middleware,
         events: ['click'],
       },
-      layout: this.$store ? this.$store.state.layout.layoutType : {} || {},
+      user: this.$store ? this.$store.state.auth.currentUser : {} || {},
     }
   },
   computed: {
@@ -32,27 +32,6 @@ export default {
     middleware(event, el) {
       return !event.target.classList.contains('toggle-right')
     },
-    changeLayout(layout) {
-      this.changeLeftSidebarTheme({ leftSidebarTheme: 'default' })
-      this.changeLayoutWidth({ layoutWidth: 'default' })
-      this.changeLayoutType({ layoutType: layout })
-      this.hide()
-    },
-    changeTheme(theme) {
-      this.changeLayoutType({ layoutType: 'vertical' })
-      this.changeLeftSidebarTheme({ leftSidebarTheme: theme })
-      this.hide()
-    },
-    changeType(condensed) {
-      this.changeLayoutType({ layoutType: 'vertical' })
-      this.changeLeftSidebarType({ leftSidebarType: condensed })
-      this.hide()
-    },
-    changeWidth(boxed) {
-      this.changeLayoutType({ layoutType: 'vertical' })
-      this.changeLayoutWidth({ layoutWidth: boxed })
-      this.hide()
-    },
   },
 }
 </script>
@@ -60,19 +39,45 @@ export default {
 <template>
   <div>
     <!-- Right Sidebar -->
-    <div v-click-outside="config" class="right-bar">
+    <div v-click-outside="config" class="pdf-right-bar">
       <div class="rightbar-title">
         <a
           href="javascript:void(0);"
-          class="right-bar-toggle float-right"
+          class="pdf-right-bar-toggle float-right"
           @click="hide"
         >
           <feather type="x-circle"></feather>
         </a>
-        <h5 class="m-0">Customization</h5>
+        <h5 class="m-0">笔记</h5>
       </div>
-
-      <div class="slimscroll-menu pb-5">
+      <div class="card d-inline-block">
+        <div class="card-body">
+          <div class="media mt-2 mb-2">
+            <img
+              src="@assets/images/users/avatar-7.jpg"
+              class="avatar-sm rounded-circle mr-2"
+              alt="Shreyu"
+            />
+            <div class="media-body">
+              <h6 class="pro-user-name">{{ user.name }}</h6>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              It will be as simple as occidental in fact it will be
+              Occidental Cambridge friend
+            </div>
+          </div>
+          <!-- <div>
+            <a
+              href="javascript: void(0)"
+              class="btn btn-primary btn-sm"
+              >Read more</a
+            >
+          </div> -->
+        </div>
+      </div>
+      <!-- <div class="slimscroll-menu pb-5">
         <VuePerfectScrollbar style="height: 100%">
           <h5 class="font-size-16 pl-3 mt-4">Choose Variation</h5>
           <div class="p-3">
@@ -126,7 +131,7 @@ export default {
             </a>
           </div>
         </VuePerfectScrollbar>
-      </div>
+      </div> -->
       <!-- end slimscroll-menu-->
     </div>
     <!-- /Right-bar -->
