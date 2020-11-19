@@ -31,10 +31,11 @@ export default {
       x: 0,
       y: 0,
       isShowTools: false,
-      isSelected:false,
-      curID:'',
-      highlighter:null,
-      store:null
+      isSelected: false,
+      curID: '',
+      highlighter: null,
+      store: null,
+      defaultStyle: 'highLight', // 默认高亮样式
     }
   },
   mounted(){
@@ -50,13 +51,27 @@ export default {
 
       vm.highlighter = new Highlighter({
         wrapTag: 'span',
-        exceptSelectors: ['pre', 'code', 'h6'],
+        exceptSelectors: ['pre', 'code', 'h5', 'h6'],
         style:{
-          className:'highLight'
+          className: vm.defaultStyle
         }
       })
+      console.log(vm.highlighter)
+      vm.store = new LocalStore()
 
       vm.highlighter
+      .on(Highlighter.event.CREATE, ({sources, type}) => {
+          log('create -', sources)
+          console.log(type)
+          vm.curID = sources.id
+          vm.styleControl(sources)
+          
+          sources = sources.map(hs => ({hs}))
+          // save to backend
+          vm.store.save(sources)
+          vm.isShowTools = false
+          vm.isSelected = false
+      })
       .on(Highlighter.event.HOVER, ({id}) => {
 
           const selection = window.getSelection()
@@ -87,15 +102,6 @@ export default {
           vm.curID = id
           vm.highlighter.removeClass('highlight-wrap-hover', id);
       })
-      .on(Highlighter.event.CREATE, ({sources}) => {
-          log('create -', sources);
-          vm.curID = sources.id
-          sources = sources.map(hs => ({hs}))
-          // save to backend
-          vm.store.save(sources)
-          vm.isShowTools = false
-          vm.isSelected = false
-      })
       .on(Highlighter.event.REMOVE, ({ids}) => {
           ids.forEach(id => {
             vm.curID = id
@@ -105,7 +111,19 @@ export default {
           vm.isSelected = false
       })
     },
+    styleControl(sources){
 
+      if(!sources.length || !sources[0].extra) return
+
+      const { id, extra } = sources[0]
+      const { className:style } = extra
+
+      if(style === this.defaultStyle) return
+
+      this.highlighter.removeClass('highLight', id)
+      this.highlighter.addClass('dashedUnderLine', id)
+
+    },
     // 计算按钮位置
     getToolLocation(node){
 
@@ -156,18 +174,31 @@ export default {
     },
 
     // 高亮文本
-    highLight(){
+    highLight(className){
       console.log('高亮')
       const selection = window.getSelection()
       const range = selection.getRangeAt(0)
       this.highlighter.setOption({
         style:{
-          className:'test'
+          className:className
         }
       })
+
+      // 为选区序列化时的持久化数据生成额外信息
+      this.highlighter.hooks.Serialize.RecordInfo.tap(function (start, end, root) {
+        return {
+          className: className
+        }
+      })
+
       // 使用web-highlighter高亮文本
       this.highlighter.fromRange(range)
-
+      
+      // 操作高亮包裹后的元素
+      this.highlighter.hooks.Render.WrapNode.tap(function (id, node) {
+        console.log(id)
+        console.log(node)
+      })
 
       this.isShowTools = false
       this.isSelected = false
@@ -176,6 +207,7 @@ export default {
     },
     // 删除高亮
     delHighLight(){
+
       console.log('删除高亮')
       this.highlighter.remove(this.curID)
       this.isShowTools = false
@@ -186,17 +218,24 @@ export default {
 
       console.log('显示已保存高亮')
       let vm = this
-      vm.store = new LocalStore()
+      // // 自定义还原（反序列化）方法
+      // this.highlighter.hooks.Serialize.Restore.tap(function (hs) {
+      //   log('Serialize.Restore hook -', hs)
+      //   console.log(hs.extra.className)
+      // })
+      // vm.store = new LocalStore()
       vm.store.getAll().forEach(
           // hs is the same data saved by 'store.save(sources)'
         ({hs}) => {
           console.log(hs)
-          vm.highlighter.fromStore(hs.startMeta, hs.endMeta, hs.text, hs.id)
+
+          vm.highlighter.fromStore(hs.startMeta, hs.endMeta, hs.text, hs.id, hs.extra)
         }
       )
 
     },
     toggleRightSidebar() {
+      this.highLight('dashedUnderLine')
       document.body.classList.toggle('right-bar-enabled')
     },
   }
@@ -239,7 +278,7 @@ export default {
       <span v-show="!isSelected">
         <span
           class="item"
-          @click="highLight"
+          @click="highLight('highLight')"
         >
           <i class="uil uil-pen"></i>
         </span>
@@ -335,7 +374,7 @@ export default {
   .highLight{
     background-color: #fc0;
   }
-  .test{
-    background-color: #000;
+  .dashedUnderLine{
+    border-bottom: 2px dashed #000;
   }
 </style>
