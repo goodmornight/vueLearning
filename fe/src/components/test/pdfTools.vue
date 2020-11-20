@@ -24,7 +24,10 @@ export default {
   },
   methods:{
     highLight(){
-      this.$emit('highLight')
+      this.$emit('highLight','highLight')
+    },
+    dashedUnderLine(){
+      this.$emit('dashedUnderLine')
     },
     delHighLight(){
       this.$emit('delHighLight')
@@ -40,16 +43,24 @@ export default {
       left: `${x}px`,
       top: `${y}px`,
     }"
+    @mousedown.prevent=""
   >
     <span
-      v-show="!isSelected"
+      v-if="!isSelected"
       class="item"
       @click="highLight"
     >
       <i class="uil uil-pen"></i>
     </span>
     <span
-      v-show="isSelected"
+      v-if="!isSelected"
+      class="item"
+      @click="dashedUnderLine"
+    >
+      <i class="uil uil-comment-notes"></i>
+    </span>
+    <span
+      v-if="isSelected"
       class="item"
       @click="delHighLight"
     >
@@ -85,15 +96,28 @@ export default {
     border-right: 6px solid transparent;
     border-top: 6px solid #333;
   }
+
   .item{
-    color: #FFF;
+    color: #fff;
     cursor: pointer;
     display: inline-block;
     font-size: 18px;
+    margin-left: 8px;
+    padding-right: 5px;
+    border-right: #fff 1px solid;
+  }
+
+  .item:first-child{
+    margin-left: 0;
+  }
+  
+  .item:last-child{
+    padding-right: 0;
+    border: none;
   }
 
   .item path{
-    fill: #FFF;
+    fill: #fff;
   }
 
   .item:hover path{

@@ -2,7 +2,7 @@
 // pdfViewer加载+web-highlighter高亮
 import PDFPage from '@components/test/pdfPage'
 import PDFSideBar from '@components/test/pdfSideBar'
-// import PDFTools from '@components/test/pdfTools'
+import PDFTools from '@components/test/pdfTools'
 import Highlighter from 'web-highlighter'
 import LocalStore from '@utils/webHighLighter/local.store'
 import workerSrc from '!!file-loader!pdfjs-dist/build/pdf.worker.js'
@@ -20,11 +20,12 @@ export default {
   },
   components: {
     PDFPage,
-    // PDFTools,
+    PDFTools,
     PDFSideBar
   },
   data() {
     return {
+      scrollTop:0,
       url:'/1.pdf',
       curPage: 1,
       numPages: 0,
@@ -42,7 +43,9 @@ export default {
     }
   },
   computed:{
-    
+    isTop(){
+      return this.scrollTop < 100
+    }
   },
   mounted(){
     // this.getWH()
@@ -185,7 +188,7 @@ export default {
       console.log('高亮')
       const selection = window.getSelection()
       const range = selection.getRangeAt(0)
-
+      console.log(range)
       this.highLightContext = range.toString()
       // 为选区序列化时的持久化数据生成额外信息
       this.highlighter.hooks.Serialize.RecordInfo.tap(function (start, end, root) {
@@ -237,8 +240,8 @@ export default {
     // 获得当前页码
     getCurPage(){
       const vm = this
-      let scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop
-      this.curPage = Math.ceil((scrollTop + 5) / vm.pageHeight)
+      this.scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop
+      this.curPage = Math.ceil((this.scrollTop + 5) / vm.pageHeight)
     },
     // 跳转到对应页面
     scrollToPage(){
@@ -273,16 +276,17 @@ export default {
     </div>
     <a href="#">回到顶部</a>
     <!-- <button @click="scrollTest">test</button> -->
-    <!-- <PDFTools
+    <PDFTools
       v-show="isShowTools"
       :x="x"
       :y="y"
       :is-selected="isSelected"
       @highLight="highLight"
+      @dashedUnderLine="dashedUnderLine"
       @delHighLight="delHighLight"
-    /> -->
+    />
     
-    <div
+    <!-- <div
       v-show="isShowTools"
       ref="tip"
       class="tools"
@@ -290,6 +294,7 @@ export default {
         left: `${x}px`,
         top: `${y}px`,
       }"
+      @mousedown.prevent=""
     >
 
       <span
@@ -314,30 +319,32 @@ export default {
         <i class="uil uil-trash"></i>
       </span>
 
-    </div>
+    </div> -->
     <PDFSideBar
       :context ="highLightContext"
     />
-    <div class="pdf-footer">
-      <div class="to-page">
-        <div style="display: inline-block;">
-          <input
-            v-model.number="curPage"
-            type="number"
-            class="form-control"
-            :min="1"
-            :max="numPages"
-            @change="scrollToPage"
-          />
+    <transition name="fade">
+      <div v-show="!isTop" class="pdf-footer">
+        <div class="to-page">
+          <div style="display: inline-block;">
+            <input
+              v-model.number="curPage"
+              type="number"
+              class="form-control"
+              :min="1"
+              :max="numPages"
+              @change="scrollToPage"
+            />
+          </div>
+          <div style="display: inline-block;">
+            <span>/ {{ numPages }}</span>
+          </div>
         </div>
-        <div style="display: inline-block;">
-          <span>/ {{ numPages }}</span>
+        <div class="to-top" @click="scrollToSomeWhere(0)">
+          <i class="uil uil-top-arrow-to-top"></i>
         </div>
       </div>
-      <div class="to-top">
-        <i class="uil uil-top-arrow-to-top"></i>
-      </div>
-    </div>
+    </transition>
   </div>
 </template>
 
@@ -356,7 +363,7 @@ export default {
     /*line-height: 32px;*/
     margin: 10% auto;
   }
-  .tools{
+  /*.tools{
     height: 30px;
     padding: 5px 10px;
     background: #333;
@@ -413,7 +420,7 @@ export default {
 
   .item:hover{
     color: #1199ff;
-  }
+  }*/
   .highLight{
     background-color: #fc0;
   }
@@ -425,32 +432,33 @@ export default {
     bottom: 0;
     left: 0;
     right: 0;
-    height: 50px;
+    height: 100px;
     width: 100%;
     /*background-color: orange;*/
     /*text-align: center;*/
   }
   .to-page{
     position: absolute;
-    bottom: 10%;
+    bottom: 25%;
     left: 50%;
     right: 0;
     display: inline-block;
   }
   .to-top{
     position: absolute;
-    bottom: 10%;
+    bottom: 65%;
     /*left: 0;*/
     right: 10%;
     display: inline-block;
-    height: 40px;
-    width: 40px;
+    height: 60px;
+    width: 60px;
     border-radius: 50%;
-    background-color: orange;
+    background-color: #5369f8;
     color: #fff;
-    font-size: 18px;
+    font-size: 23px;
     text-align: center;
-    line-height: 40px;
+    line-height: 60px;
+    box-shadow: 0 0.05rem 0.01rem rgba(75, 75, 90, 0.075);
   }
 /*  .pdf-footer:hover .page-numCon{
     visibility: visible;
@@ -458,5 +466,10 @@ export default {
   .page-numCon{
     visibility: hidden;
   }*/
-  
+  .fade-enter-active, .fade-leave-active {
+    transition: opacity .5s;
+  }
+  .fade-enter, .fade-leave-to {
+    opacity: 0;
+  }
 </style>
