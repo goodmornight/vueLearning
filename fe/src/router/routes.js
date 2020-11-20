@@ -532,6 +532,12 @@ const testRoutes = [
             component: () =>
               lazyLoadView(import('@views/pages/test/singlePdfViewerTest'))
           },
+          {
+            path: 'moreColorHighLight',
+            name: '多色高亮测试',
+            component: () =>
+              lazyLoadView(import('@views/pages/test/moreColorHighLight'))
+          },
         ],
       },
       

@@ -35,6 +35,14 @@ export default {
   },
   computed:{
     ...authComputed,
+    pageHeight: {
+      get(){
+        return this.pdfPageView.viewport.height
+      },
+      set(v){
+
+      }
+    },
     renderingState(){
       return this.pdfPageView.textLayer.renderingDone
     },
@@ -43,7 +51,7 @@ export default {
     'pdfPageView.textLayer.renderingDone':function(newVal,oldVal){
       if(newVal && this.curPage === this.numPages){
         console.log('PDF文字层加载完成')
-        this.$emit('isPdfCompleted')
+        this.$emit('isPdfCompleted', this.pageHeight)
       }
     },
   },
@@ -94,6 +102,9 @@ export default {
       this.pdfPageView.draw()
 
     },
+    pageHeight(){
+      this.$parent.pageHeight = this.pageHeight
+    }
   }
 }
 </script>

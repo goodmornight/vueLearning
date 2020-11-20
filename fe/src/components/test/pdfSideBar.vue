@@ -7,6 +7,12 @@ import { authComputed, layoutMethods } from '@state/helpers'
  */
 export default {
   components: { VuePerfectScrollbar },
+  props:{
+    context:{
+      type: String,
+      default: ''
+    },
+  },
   data() {
     return {
       config: {
@@ -64,8 +70,7 @@ export default {
           </div>
           <div class="card">
             <div class="card-body">
-              It will be as simple as occidental in fact it will be
-              Occidental Cambridge friend
+              {{ context }}
             </div>
           </div>
           <!-- <div>
@@ -77,62 +82,6 @@ export default {
           </div> -->
         </div>
       </div>
-      <!-- <div class="slimscroll-menu pb-5">
-        <VuePerfectScrollbar style="height: 100%">
-          <h5 class="font-size-16 pl-3 mt-4">Choose Variation</h5>
-          <div class="p-3">
-            <h6>Default</h6>
-            <a href="javascript: void(0);" @click="changeLayout('vertical')">
-              <img
-                src="@assets/images/layouts/vertical.jpg"
-                alt="vertical"
-                class="img-thumbnail demo-img"
-              />
-            </a>
-          </div>
-          <div class="px-3 py-1">
-            <h6>Top Nav</h6>
-            <a href="javascript: void(0);" @click="changeLayout('horizontal')">
-              <img
-                src="@assets/images/layouts/horizontal.jpg"
-                alt="horizontal"
-                class="img-thumbnail demo-img"
-              />
-            </a>
-          </div>
-          <div class="px-3 py-1">
-            <h6>Dark Side Nav</h6>
-            <a href="javascript: void(0);" @click="changeTheme('dark')">
-              <img
-                src="@assets/images/layouts/vertical-dark-sidebar.jpg"
-                alt="dark sidenav"
-                class="img-thumbnail demo-img"
-              />
-            </a>
-          </div>
-          <div class="px-3 py-1">
-            <h6>Condensed Side Nav</h6>
-            <a href="javascript: void(0);" @click="changeType('condensed')">
-              <img
-                src="@assets/images/layouts/vertical-condensed.jpg"
-                alt="condensed"
-                class="img-thumbnail demo-img"
-              />
-            </a>
-          </div>
-          <div class="px-3 py-1">
-            <h6>Fixed Width (Boxed)</h6>
-            <a href="javascript: void(0);" @click="changeWidth('boxed')">
-              <img
-                src="@assets/images/layouts/boxed.jpg"
-                alt="boxed"
-                class="img-thumbnail demo-img"
-              />
-            </a>
-          </div>
-        </VuePerfectScrollbar>
-      </div> -->
-      <!-- end slimscroll-menu-->
     </div>
     <!-- /Right-bar -->
   </div>

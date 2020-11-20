@@ -16,7 +16,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc
 
 export default {
   page: {
-    title: 'pdf整篇显示',
+    title: '多色高亮标注',
   },
   components: {
     PDFPage,
@@ -26,14 +26,17 @@ export default {
   data() {
     return {
       url:'/1.pdf',
-      curPage: 1,
       numPages: 0,
       loadingTask: null,
-      pageHeight: 0,
       x: 0,
       y: 0,
       isShowTools: false,
-      isSelected: false,
+      //isSelected: false,         // 是否选中
+      isYellowMark: false,       // 黄色高亮
+      isRedMark: false,          // 红色高亮
+      isGreenMark: false,        // 绿色高亮
+      isBlueMark: false,         // 蓝色高亮
+      isComment: false,          // 文本笔记
       curID: '',
       highlighter: null,
       store: null,
@@ -42,17 +45,22 @@ export default {
     }
   },
   computed:{
-    
+    isSelected: {
+      get: function(){
+        return this.isYellowMark || this.isRedMark || this.isGreenMark || this.isBlueMark || this.isComment
+      },
+      set: function(newVal){
+        console.log(newVal)
+        // return newVal
+      }
+    }
   },
   mounted(){
     // this.getWH()
     this.pageViewer(this.url)
     this.initHighLighter(this.highlighter)
-    window.addEventListener('scroll', this.getCurPage)
   },
-  destroyed () {
-    window.removeEventListener('scroll', this.getCurPage)
-  },
+
   methods:{
     // 初始化web-highlighter插件
     initHighLighter(){
@@ -210,6 +218,7 @@ export default {
     },
     dashedUnderLine(){
       this.highLight('dashedUnderLine')
+
       this.toggleRightSidebar()
     },
     // 删除高亮
@@ -221,46 +230,25 @@ export default {
 
     },
     // 已保存的高亮显示
-    storedHighLight(pageHeight){
+    storedHighLight(){
 
       const vm = this
-      this.pageHeight = pageHeight
 
       vm.store.getAll().forEach(({hs}) => {
         vm.highlighter.fromStore(hs.startMeta, hs.endMeta, hs.text, hs.id, hs.extra)
       })
     },
-    // 右侧笔记添加栏显示与关闭
     toggleRightSidebar() {
       document.body.classList.toggle('pdf-right-bar-enabled')
-    },
-    // 获得当前页码
-    getCurPage(){
-      const vm = this
-      let scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop
-      this.curPage = Math.ceil((scrollTop + 5) / vm.pageHeight)
-    },
-    // 跳转到对应页面
-    scrollToPage(){
-      let top = (this.curPage - 1) * this.pageHeight
-      this.scrollToSomeWhere(top)
-    },
-    // 跳转到某一个位置
-    scrollToSomeWhere(top){
-      window.scrollTo({
-        top: top,
-        behavior: 'smooth'
-      })
     },
   }
 }
 </script>
 
 <template>
-  <div style="min-height 100%">
+  <div>
     <!-- <div ref="pageContainer" class="pdfViewer singlePageView" @mouseup="range">
     </div> -->
-    
     <div @mouseup="range">
       <PDFPage
       v-for="n in numPages"
@@ -271,8 +259,6 @@ export default {
       @isPdfCompleted="storedHighLight"
       />
     </div>
-    <a href="#">回到顶部</a>
-    <!-- <button @click="scrollTest">test</button> -->
     <!-- <PDFTools
       v-show="isShowTools"
       :x="x"
@@ -290,17 +276,34 @@ export default {
         left: `${x}px`,
         top: `${y}px`,
       }"
+      @mousedown.prevent=""
     >
 
       <span
-        v-if="!isSelected"
         class="item"
         @click="highLight('highLight')"
       >
-        <i class="uil uil-pen"></i>
+        <i class="uil uil-pen" style="color: yellow"></i>
       </span>
       <span
-        v-if="!isSelected"
+        class="item"
+        @click="highLight('highLight')"
+      >
+        <i class="uil uil-pen" style="color: red"></i>
+      </span>
+      <span
+        class="item"
+        @click="highLight('highLight')"
+      >
+        <i class="uil uil-pen" style="color: green"></i>
+      </span>
+      <span
+        class="item"
+        @click="highLight('highLight')"
+      >
+        <i class="uil uil-pen" style="color: blue"></i>
+      </span>
+      <span
         class="item"
         @click="dashedUnderLine"
       >
@@ -318,37 +321,13 @@ export default {
     <PDFSideBar
       :context ="highLightContext"
     />
-    <div class="pdf-footer">
-      <div class="to-page">
-        <div style="display: inline-block;">
-          <input
-            v-model.number="curPage"
-            type="number"
-            class="form-control"
-            :min="1"
-            :max="numPages"
-            @change="scrollToPage"
-          />
-        </div>
-        <div style="display: inline-block;">
-          <span>/ {{ numPages }}</span>
-        </div>
-      </div>
-      <div class="to-top">
-        <i class="uil uil-top-arrow-to-top"></i>
-      </div>
-    </div>
   </div>
 </template>
 
 <style type="text/css">
-  html{
-    /*scroll-behavior:smooth;*/
-  }
   body{
     padding:0;
     text-align: middle;
-    /*scroll-behavior:smooth;*/
   }
   .container{
     width: 80%;
@@ -420,43 +399,4 @@ export default {
   .dashedUnderLine{
     border-bottom: 2px dashed #000;
   }
-  .pdf-footer{
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 50px;
-    width: 100%;
-    /*background-color: orange;*/
-    /*text-align: center;*/
-  }
-  .to-page{
-    position: absolute;
-    bottom: 10%;
-    left: 50%;
-    right: 0;
-    display: inline-block;
-  }
-  .to-top{
-    position: absolute;
-    bottom: 10%;
-    /*left: 0;*/
-    right: 10%;
-    display: inline-block;
-    height: 40px;
-    width: 40px;
-    border-radius: 50%;
-    background-color: orange;
-    color: #fff;
-    font-size: 18px;
-    text-align: center;
-    line-height: 40px;
-  }
-/*  .pdf-footer:hover .page-numCon{
-    visibility: visible;
-  }
-  .page-numCon{
-    visibility: hidden;
-  }*/
-  
 </style>
