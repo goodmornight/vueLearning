@@ -447,9 +447,9 @@ export default {
   .to-top{
     position: absolute;
     bottom: 65%;
-    /*left: 0;*/
     right: 10%;
     display: inline-block;
+    cursor: pointer;
     height: 60px;
     width: 60px;
     border-radius: 50%;

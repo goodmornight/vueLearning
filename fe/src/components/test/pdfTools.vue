@@ -15,12 +15,7 @@ export default {
     },
   },
   data(){
-  	return{
-  		// x: 0,
-	   //  y: 0,
-	   //  showTools: false,
-	   //  selectedText: ''
-  	}
+  	return{}
   },
   methods:{
     highLight(){
