@@ -3,6 +3,7 @@
 import PDFPage from '@components/test/pdfPage'
 import PDFSideBar from '@components/test/pdfSideBar'
 import PDFTools from '@components/test/pdfTools'
+// import PDFFooter from '@components/test/pdfFooter'
 import Highlighter from 'web-highlighter'
 import LocalStore from '@utils/webHighLighter/local.store'
 import workerSrc from '!!file-loader!pdfjs-dist/build/pdf.worker.js'
@@ -21,7 +22,8 @@ export default {
   components: {
     PDFPage,
     PDFTools,
-    PDFSideBar
+    PDFSideBar,
+    // PDFFooter
   },
   data() {
     return {
@@ -48,10 +50,10 @@ export default {
     }
   },
   mounted(){
-    // this.getWH()
-    // this.pageViewer(this.url)
+
     this.initHighLighter(this.highlighter)
     window.addEventListener('scroll', this.getCurPage)
+
   },
   destroyed () {
     window.removeEventListener('scroll', this.getCurPage)
@@ -143,14 +145,6 @@ export default {
       const { x, y, width } = node.getBoundingClientRect()
       this.x = x + (width / 2)
       this.y = y + window.scrollY - 10
-
-    },
-
-    // pdf加载
-    async pageViewer(url){
-
-      this.loadingTask = await pdfjsLib.getDocument(url).promise
-      this.numPages = this.loadingTask.numPages
 
     },
 
@@ -284,9 +278,20 @@ export default {
       @delHighLight="delHighLight"
     />
     <PDFSideBar
-      :context ="highLightContext"
+      :context="highLightContext"
     />
     <transition name="fade">
+      <!-- <PDFFooter
+        v-show="!isTop"
+        v-bind="{
+          curPage,
+          numPages
+        }"
+        v-on="{
+          scrollToPage,
+          scrollToTop: scrollToSomeWhere
+        }"
+      /> -->
       <div v-show="!isTop" class="pdf-footer">
         <div class="to-page">
           <div style="display: inline-block;">

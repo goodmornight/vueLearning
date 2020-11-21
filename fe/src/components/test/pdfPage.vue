@@ -1,5 +1,5 @@
 <script>
-// pdfPageTest单页组件
+// pdfPage单页组件
 import PDFDocument from '@components/test/pdfDocument'
 import workerSrc from '!!file-loader!pdfjs-dist/build/pdf.worker.js'
 import 'pdfjs-dist/web/pdf_viewer.css'
@@ -58,13 +58,13 @@ export default {
 <template>
   <div @mouseup="range">
     <PDFDocument
-    v-for="n in numPages"
-    :key="n"
-    :loading-task="loadingTask"
-    :cur-page="n"
-    :num-pages="numPages"
-    @isPdfCompleted="storedHighLight"
-    @pageHeight="getPageHeight"
+      v-for="n in numPages"
+      :key="n"
+      :loading-task="loadingTask"
+      :cur-page="n"
+      :num-pages="numPages"
+      @isPdfCompleted="storedHighLight"
+      @pageHeight="getPageHeight"
     />
   </div>
 </template>
