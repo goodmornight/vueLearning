@@ -1,6 +1,6 @@
 <script>
-// pdfPage单页组件
-import { authComputed } from '@state/helpers'
+// pdfPageTest单页组件
+import PDFDocument from '@components/test/pdfDocument'
 import workerSrc from '!!file-loader!pdfjs-dist/build/pdf.worker.js'
 import 'pdfjs-dist/web/pdf_viewer.css'
 import '@src/design/highlighter/my.css'
@@ -11,105 +11,60 @@ const pdfjsViewer = require(/* webpackChunkName: "pdfjs-dist" */ `pdfjs-dist/web
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc
 
 export default {
-  components: {},
-  props:{
-    loadingTask:{
-      type: Object,
-      default: null
+  components: {
+    PDFDocument
+  },
+  props: {
+    url: {
+      type: String,
+      default: ''
     },
-    curPage:{
-      type: Number,
-      default: 0
-    },
-    numPages:{
-      type: Number,
-      default: 0
-    }
   },
   data() {
     return {
-      screenWidth: '',
-      screenHeight: '',
-      pdfPageView: null,
+      numPages: 0,
+      loadingTask: null
     }
   },
-  computed:{
-    ...authComputed,
-    pageHeight: {
-      get(){
-        return this.pdfPageView.viewport.height
-      },
-      set(v){
-
-      }
-    },
-    renderingState(){
-      return this.pdfPageView.textLayer.renderingDone
-    },
-  },
-  watch:{
-    'pdfPageView.textLayer.renderingDone':function(newVal,oldVal){
-      if(newVal && this.curPage === this.numPages){
-        console.log('PDF文字层加载完成')
-        this.$emit('isPdfCompleted', this.pageHeight)
-      }
-    },
-  },
   mounted(){
-    this.getWH()
-    this.pageViewer(this.curPage)
+    this.pageViewer(this.url)
   },
 
   methods:{
-    // 获取浏览器内部的宽高
-    getWH(){
-      let vm = this
-      vm.screenWidth = window.innerWidth
-      vm.screenHeight = window.innerHeight
-      window.onresize = () => {
-        return (() => {
-          vm.screenWidth = window.innerWidth
-          vm.screenHeight = window.innerHeight
-        })()
-      }
-    },
-
     // pdf加载
-    async pageViewer(curPage){
+    async pageViewer(url){
 
-      const page = await this.loadingTask.getPage(curPage)
-      const SCALE = 1.0
-      const container = this.$refs.pageContainer
-      const eventBus = new pdfjsViewer.EventBus()
-
-      let desiredHeight = this.screenHeight
-      let viewport = page.getViewport({ scale: SCALE })
-      let scale = desiredHeight / viewport.height
-      let scaledViewport = page.getViewport({ scale: scale })
-
-      // Creating the page view with default parameters.
-      this.pdfPageView = new pdfjsViewer.PDFPageView({
-        container: container,
-        id: curPage,
-        scale: scale,
-        defaultViewport: scaledViewport,
-        eventBus: eventBus,
-        textLayerFactory: new pdfjsViewer.DefaultTextLayerFactory(),
-      })
-
-      // Associates the actual page with the view, and drawing it
-      this.pdfPageView.setPdfPage(page)
-      this.pdfPageView.draw()
+      this.loadingTask = await pdfjsLib.getDocument(url).promise
+      this.numPages = this.loadingTask.numPages
+      this.$emit('numPages', this.numPages)
 
     },
-    pageHeight(){
-      this.$parent.pageHeight = this.pageHeight
-    }
+    // 鼠标选中文本触发
+    range(){
+      this.$emit('range')
+    },
+    // textLayer加载完成触发
+    storedHighLight(){
+      this.$emit('storedHighLight')
+    },
+    // 传递pdf页面高度
+    getPageHeight(h){
+      this.$emit('pageHeight', h)
+    },
   }
 }
 </script>
 
 <template>
-  <!-- <div ref="pageContainer" class="pdfViewer singlePageView"></div> -->
-  <div ref="pageContainer" class="pdfViewer"></div>
+  <div @mouseup="range">
+    <PDFDocument
+    v-for="n in numPages"
+    :key="n"
+    :loading-task="loadingTask"
+    :cur-page="n"
+    :num-pages="numPages"
+    @isPdfCompleted="storedHighLight"
+    @pageHeight="getPageHeight"
+    />
+  </div>
 </template>

@@ -49,7 +49,7 @@ export default {
   },
   mounted(){
     // this.getWH()
-    this.pageViewer(this.url)
+    // this.pageViewer(this.url)
     this.initHighLighter(this.highlighter)
     window.addEventListener('scroll', this.getCurPage)
   },
@@ -57,6 +57,7 @@ export default {
     window.removeEventListener('scroll', this.getCurPage)
   },
   methods:{
+
     // 初始化web-highlighter插件
     initHighLighter(){
       let vm = this
@@ -120,6 +121,7 @@ export default {
           vm.isSelected = false
       })
     },
+
     // 高亮显示控制
     styleControl(sources){
 
@@ -134,6 +136,7 @@ export default {
       this.highlighter.addClass('dashedUnderLine', id)
 
     },
+
     // 计算按钮位置
     getToolLocation(node){
 
@@ -188,7 +191,7 @@ export default {
       console.log('高亮')
       const selection = window.getSelection()
       const range = selection.getRangeAt(0)
-      console.log(range)
+
       this.highLightContext = range.toString()
       // 为选区序列化时的持久化数据生成额外信息
       this.highlighter.hooks.Serialize.RecordInfo.tap(function (start, end, root) {
@@ -199,12 +202,6 @@ export default {
 
       // 使用web-highlighter高亮文本
       this.highlighter.fromRange(range)
-      
-      // 操作高亮包裹后的元素
-      // this.highlighter.hooks.Render.WrapNode.tap(function (id, node) {
-      //   console.log(id)
-      //   console.log(node)
-      // })
 
       this.isShowTools = false
       this.isSelected = false
@@ -243,6 +240,13 @@ export default {
       this.scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop
       this.curPage = Math.ceil((this.scrollTop + 5) / vm.pageHeight)
     },
+    getNumPages(num){
+      this.numPages = num
+    },
+    // 获得pdf页面高度
+    getPageHeight(h){
+      this.pageHeight = h
+    },
     // 跳转到对应页面
     scrollToPage(){
       let top = (this.curPage - 1) * this.pageHeight
@@ -261,21 +265,15 @@ export default {
 
 <template>
   <div style="min-height 100%">
-    <!-- <div ref="pageContainer" class="pdfViewer singlePageView" @mouseup="range">
-    </div> -->
-    
-    <div @mouseup="range">
-      <PDFPage
-      v-for="n in numPages"
-      :key="n"
-      :loading-task="loadingTask"
-      :cur-page="n"
-      :num-pages="numPages"
-      @isPdfCompleted="storedHighLight"
-      />
-    </div>
-    <a href="#">回到顶部</a>
-    <!-- <button @click="scrollTest">test</button> -->
+    <PDFPage
+      :url="url"
+      v-on="{
+        range,
+        storedHighLight,
+        numPages:getNumPages,
+        pageHeight:getPageHeight
+      }"
+    />
     <PDFTools
       v-show="isShowTools"
       :x="x"
@@ -285,41 +283,6 @@ export default {
       @dashedUnderLine="dashedUnderLine"
       @delHighLight="delHighLight"
     />
-    
-    <!-- <div
-      v-show="isShowTools"
-      ref="tip"
-      class="tools"
-      :style="{
-        left: `${x}px`,
-        top: `${y}px`,
-      }"
-      @mousedown.prevent=""
-    >
-
-      <span
-        v-if="!isSelected"
-        class="item"
-        @click="highLight('highLight')"
-      >
-        <i class="uil uil-pen"></i>
-      </span>
-      <span
-        v-if="!isSelected"
-        class="item"
-        @click="dashedUnderLine"
-      >
-        <i class="uil uil-comment-notes"></i>
-      </span>
-      <span
-        v-if="isSelected"
-        class="item"
-        @click="delHighLight"
-      >
-        <i class="uil uil-trash"></i>
-      </span>
-
-    </div> -->
     <PDFSideBar
       :context ="highLightContext"
     />
@@ -363,64 +326,6 @@ export default {
     /*line-height: 32px;*/
     margin: 10% auto;
   }
-  /*.tools{
-    height: 30px;
-    padding: 5px 10px;
-    background: #333;
-    border-radius: 3px;
-    position: absolute;
-    top: 0;
-    left: 0;
-    transform: translate(-50%, -100%);
-    transition: 0.2s all;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .tools:after{
-    content: '';
-    position: absolute;
-    left: 50%;
-    bottom: -5px;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 6px solid transparent;
-    border-right: 6px solid transparent;
-    border-top: 6px solid #333;
-  }
-
-  .item{
-    color: #fff;
-    cursor: pointer;
-    display: inline-block;
-    font-size: 18px;
-    margin-left: 8px;
-    padding-right: 5px;
-    border-right: #fff 1px solid;
-  }
-
-  .item:first-child{
-    margin-left: 0;
-  }
-  
-  .item:last-child{
-    padding-right: 0;
-    border: none;
-  }
-
-  .item path{
-    fill: #fff;
-  }
-
-  .item:hover path{
-    fill: #1199ff;
-  }
-
-  .item:hover{
-    color: #1199ff;
-  }*/
   .highLight{
     background-color: #fc0;
   }

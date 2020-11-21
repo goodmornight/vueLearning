@@ -522,7 +522,7 @@ const testRoutes = [
           },
           {
             path: 'pdfViewer',
-            name: 'pdf整篇显示',
+            name: 'PDF Demo',
             component: () =>
               lazyLoadView(import('@views/pages/test/pdfViewer'))
           },
