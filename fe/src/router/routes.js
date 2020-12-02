@@ -444,6 +444,106 @@ const chartsRoutes = [
   },
 ]
 
+// test
+const testRoutes = [
+  {
+    path: '/test',
+    name: 'Test',
+    icon: 'target',
+    component: {
+      render(c) {
+        return c('router-view')
+      },
+    },
+    children: [
+      {
+        path: 'pdf',
+        name: 'PDF',
+        // create a container component
+        component: {
+          render(c) {
+            return c('router-view')
+          },
+        },
+        children: [
+          {
+            path: 'vuePdf',
+            name: '插件vue-pdf',
+            component: () =>
+              lazyLoadView(import('@views/pages/test/pdf')),
+          },
+          {
+            path: 'pdfIframe',
+            name: 'Iframe方式',
+            component: () =>
+              lazyLoadView(import('@views/pages/test/pdfIframe')),
+          },
+          {
+            path: 'pdfJsDist',
+            name: 'psfjs:canvas+textLayer+web-highlighter',
+            component: () =>
+              lazyLoadView(import('@views/pages/test/pdfJsDist'))
+          },
+          {
+            path: 'highLight',
+            name: 'pdfjs+web-highLighter',
+            component: () =>
+              lazyLoadView(import('@views/pages/test/highLight'))
+          }, 
+          {
+            path: 'pdfjs',
+            name: 'psfjs:canvas+textLayer',
+            component: () =>
+              lazyLoadView(import('@views/pages/test/pdfjs'))
+          },
+          {
+            path: 'singlePdfViewer',
+            name: 'pdfViewer加载+自定义高亮',
+            component: () =>
+              lazyLoadView(import('@views/pages/test/singlePdfViewer'))
+          },
+          {
+            path: 'highLightText',
+            name: '自定义高亮测试',
+            component: () =>
+              lazyLoadView(import('@views/pages/test/highLightText'))
+          },
+          {
+            path: 'vueHighLightText',
+            name: '插件vue-text-highlight',
+            component: () =>
+              lazyLoadView(import('@views/pages/test/vueHighLightText'))
+          },
+          {
+            path: 'webHighLighter',
+            name: '插件web-highlighter',
+            component: () =>
+              lazyLoadView(import('@views/pages/test/webHighLighter'))
+          },
+          {
+            path: 'pdfViewer',
+            name: 'PDF Demo',
+            component: () =>
+              lazyLoadView(import('@views/pages/test/pdfViewer'))
+          },
+          {
+            path: 'singlePdfViewerTest',
+            name: 'singlePdfViewer测试',
+            component: () =>
+              lazyLoadView(import('@views/pages/test/singlePdfViewerTest'))
+          },
+          {
+            path: 'moreColorHighLight',
+            name: '多色高亮测试',
+            component: () =>
+              lazyLoadView(import('@views/pages/test/moreColorHighLight'))
+          },
+        ],
+      },
+      
+    ],
+  },
+]
 
 const authProtectedRoutes = [
   ...dashboardRoutes,
@@ -452,7 +552,8 @@ const authProtectedRoutes = [
   ...uiRoutes,
   ...formsRoutes,
   ...chartsRoutes,
-  ...tablesRoutes
+  ...tablesRoutes,
+  ...testRoutes
 ]
 const allRoutes = [...authRoutes, ...authProtectedRoutes, ...errorPagesRoutes]
 

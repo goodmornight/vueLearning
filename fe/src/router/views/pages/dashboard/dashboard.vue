@@ -9,7 +9,6 @@ import Overview from '@components/overview'
 import Member from '@components/member'
 import Task from '@components/task'
 import Chat from '@components/chat'
-import Test from '@src/api/test'
 
 import {
 	revenueAreaChart,
