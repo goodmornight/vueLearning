@@ -1,12 +1,19 @@
 <script>
 import VuePerfectScrollbar from 'vue-perfect-scrollbar'
 import { authComputed, layoutMethods } from '@state/helpers'
+// import { Editor } from '@toast-ui/vue-editor'
+
+// import 'codemirror/lib/codemirror.css'
+// import '@toast-ui/editor/dist/toastui-editor.css'
 
 /**
  * A right sidebar component
  */
 export default {
-  components: { VuePerfectScrollbar },
+  components: {
+    VuePerfectScrollbar,
+    // Editor
+  },
   props:{
     context:{
       type: String,
@@ -56,8 +63,8 @@ export default {
         </a>
         <h5 class="m-0">笔记</h5>
       </div>
-      <div class="card d-inline-block">
-        <div class="card-body min-vw-100">
+      <div class="card d-inline-block edit-card">
+        <div class="card-body">
           <div class="media mt-2 mb-2">
             <img
               src="@assets/images/users/avatar-7.jpg"
@@ -68,14 +75,18 @@ export default {
               <h6 class="pro-user-name">{{ user.name }}</h6>
             </div>
           </div>
-          <!-- <div class="card">
-            <div class="card-body">
-              {{ context }}
-            </div>
-          </div> -->
+
+          <b-form-textarea></b-form-textarea>
+          <!-- <Editor /> -->
+          
         </div>
       </div>
     </div>
     <!-- /Right-bar -->
   </div>
 </template>
+<style type="text/css">
+  .edit-card {
+    width: 100%;
+  }
+</style>
