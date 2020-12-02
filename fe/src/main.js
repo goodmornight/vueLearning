@@ -20,6 +20,13 @@ Vue.use(flatPickr)
 Vue.use(VueRouter)
 Vue.use(vco)
 
+Vue.use(BootstrapVue)
+Vue.use(Vuelidate)
+Vue.use(VueMask)
+Vue.use(require('vue-moment'))
+
+Vue.component('apexchart', VueApexCharts)
+
 // Don't warn about using the dev version of Vue in development.
 Vue.config.productionTip = process.env.NODE_ENV === 'production'
 
@@ -29,11 +36,7 @@ if (process.env.VUE_APP_TEST === 'e2e') {
   Vue.config.errorHandler = window.Cypress.cy.onUncaughtException
 }
 
-Vue.use(BootstrapVue)
-Vue.use(Vuelidate)
-Vue.use(VueMask)
 
-Vue.component('apexchart', VueApexCharts)
 
 // Uncomment this if you are having api served through other url or do not want to use fake backend
 // Vue.prototype.$http = require('axios')

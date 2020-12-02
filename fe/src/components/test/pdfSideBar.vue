@@ -65,14 +65,19 @@ export default {
       </div>
       <div class="card d-inline-block edit-card">
         <div class="card-body">
-          <div class="media mt-2 mb-2">
+
+          <div class="d-flex flex-row align-self-center mb-2">
             <img
-              src="@assets/images/users/avatar-7.jpg"
               class="avatar-sm rounded-circle mr-2"
-              alt="Shreyu"
+              src="@assets/images/users/avatar-7.jpg"
+              alt="avatar"
             />
-            <div class="media-body">
-              <h6 class="pro-user-name">{{ user.name }}</h6>
+            <div class="info-body d-flex flex-column align-self-center overflow-text">
+              <span class="author">{{ user.name }}</span>
+              <span class="update-time">
+                {{ new Date() | moment("YY/MM/DD HH:mm:ss") }}
+                <!-- {{ new Date() | moment('YY/MM/DD HH:mm:ss') }} -->
+              </span>
             </div>
           </div>
 
@@ -86,7 +91,27 @@ export default {
   </div>
 </template>
 <style type="text/css">
-  .edit-card {
-    width: 100%;
-  }
+.edit-card {
+  width: 100%;
+}
+.info {
+  display: flex;
+  align-items: flex-start;
+  margin: 2rem 0;
+}
+.info-body {
+  flex: 1;
+}
+.author {
+  font-size: 16px;
+  line-height: 1rem;
+  /*margin-top: 0;
+  margin-bottom: 0;*/
+}
+.update-time {
+  font-size: 0.6rem;
+  color: green;
+  margin-top: 0;
+  margin-bottom: 0;
+}
 </style>
