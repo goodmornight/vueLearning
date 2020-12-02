@@ -44,24 +44,28 @@ export default {
       highLightContext: '',      // 高亮文本内容
     }
   },
-  computed:{
-    isTop(){
+  computed: {
+    // 判断是否位于顶部
+    isTop() {
       return this.scrollTop < 100
-    }
+    },
+
   },
-  mounted(){
+  mounted() {
 
     this.initHighLighter(this.highlighter)
     window.addEventListener('scroll', this.getCurPage)
 
   },
-  destroyed () {
+  destroyed() {
+
     window.removeEventListener('scroll', this.getCurPage)
+
   },
   methods:{
 
     // 初始化web-highlighter插件
-    initHighLighter(){
+    initHighLighter() {
       let vm = this
 
       vm.highlighter = new Highlighter({
@@ -125,7 +129,7 @@ export default {
     },
 
     // 高亮显示控制
-    styleControl(sources){
+    styleControl(sources) {
 
       if(!sources.length || !sources[0].extra) return
 
@@ -140,7 +144,7 @@ export default {
     },
 
     // 计算按钮位置
-    getToolLocation(node){
+    getToolLocation(node) {
 
       const { x, y, width } = node.getBoundingClientRect()
       this.x = x + (width / 2)
@@ -149,7 +153,7 @@ export default {
     },
 
     // 选中文本触发事件
-    range(){
+    range() {
 
       const selection = window.getSelection()
       // 判断选区起始点是否在同一个位置
@@ -165,7 +169,7 @@ export default {
     },
 
     // 选中文本弹出按钮
-    selectionTool(selection){
+    selectionTool(selection) {
 
       this.isSelected = false
 
@@ -181,7 +185,7 @@ export default {
     },
 
     // 高亮文本
-    highLight(className){
+    highLight(className) {
       console.log('高亮')
       const selection = window.getSelection()
       const range = selection.getRangeAt(0)
@@ -202,10 +206,13 @@ export default {
       selection.removeRange(range)
 
     },
+
+    // 虚线下划线
     dashedUnderLine(){
       this.highLight('dashedUnderLine')
       this.toggleRightSidebar()
     },
+
     // 删除高亮
     delHighLight(){
 
@@ -214,6 +221,7 @@ export default {
       this.isShowTools = false
 
     },
+
     // 已保存的高亮显示
     storedHighLight(pageHeight){
 
@@ -224,16 +232,20 @@ export default {
         vm.highlighter.fromStore(hs.startMeta, hs.endMeta, hs.text, hs.id, hs.extra)
       })
     },
+
     // 右侧笔记添加栏显示与关闭
     toggleRightSidebar() {
       document.body.classList.toggle('pdf-right-bar-enabled')
     },
+
     // 获得当前页码
     getCurPage(){
       const vm = this
       this.scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop
       this.curPage = Math.ceil((this.scrollTop + 5) / vm.pageHeight)
     },
+
+    // 获得页面总数
     getNumPages(num){
       this.numPages = num
     },
@@ -259,6 +271,7 @@ export default {
 
 <template>
   <div style="min-height 100%">
+
     <PDFPage
       :url="url"
       v-on="{
@@ -268,6 +281,7 @@ export default {
         pageHeight:getPageHeight
       }"
     />
+
     <PDFTools
       v-show="isShowTools"
       :x="x"
@@ -277,9 +291,11 @@ export default {
       @dashedUnderLine="dashedUnderLine"
       @delHighLight="delHighLight"
     />
+
     <PDFSideBar
       :context="highLightContext"
     />
+    
     <transition name="fade">
       <!-- <PDFFooter
         v-show="!isTop"

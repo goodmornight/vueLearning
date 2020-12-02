@@ -32,23 +32,26 @@ export default {
 
   methods:{
     // pdf加载
-    async pageViewer(url){
+    async pageViewer(url) {
 
       this.loadingTask = await pdfjsLib.getDocument(url).promise
       this.numPages = this.loadingTask.numPages
       this.$emit('numPages', this.numPages)
 
     },
+
     // 鼠标选中文本触发
-    range(){
+    range() {
       this.$emit('range')
     },
+
     // textLayer加载完成触发
-    storedHighLight(){
+    storedHighLight() {
       this.$emit('storedHighLight')
     },
+    
     // 传递pdf页面高度
-    getPageHeight(h){
+    getPageHeight(h) {
       this.$emit('pageHeight', h)
     },
   }

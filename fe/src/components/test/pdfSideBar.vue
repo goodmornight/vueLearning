@@ -57,7 +57,7 @@ export default {
         <h5 class="m-0">笔记</h5>
       </div>
       <div class="card d-inline-block">
-        <div class="card-body">
+        <div class="card-body min-vw-100">
           <div class="media mt-2 mb-2">
             <img
               src="@assets/images/users/avatar-7.jpg"
@@ -68,17 +68,10 @@ export default {
               <h6 class="pro-user-name">{{ user.name }}</h6>
             </div>
           </div>
-          <div class="card">
+          <!-- <div class="card">
             <div class="card-body">
               {{ context }}
             </div>
-          </div>
-          <!-- <div>
-            <a
-              href="javascript: void(0)"
-              class="btn btn-primary btn-sm"
-              >Read more</a
-            >
           </div> -->
         </div>
       </div>
