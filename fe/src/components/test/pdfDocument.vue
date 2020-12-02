@@ -58,6 +58,7 @@ export default {
   },
 
   methods:{
+    
     // 获取浏览器内部的宽高
     getWH(){
       let vm = this
