@@ -1,6 +1,6 @@
 <script>
 import VuePerfectScrollbar from 'vue-perfect-scrollbar'
-import { authComputed } from '@state/helpers'
+import { authComputed, authMethods } from '@state/helpers'
 import Appmenu from './app-menu'
 
 /**
@@ -81,8 +81,16 @@ export default {
 						break
 				}
 			}
-		},
+		}
 	},
+	methods: {
+    ...authMethods,
+  // 退出登录
+    logout () {
+      this.logOut() // auth/logOut
+      this.$keycloak.logoutFn()
+    }
+  },
 }
 </script>
 
@@ -101,9 +109,13 @@ export default {
 				alt="Shreyu"
 			/>
 
-			<div class="media-body">
+			<!-- <div class="media-body">
 				<h6 class="pro-user-name mt-0 mb-0">{{ user.name }}</h6>
 				<span class="pro-user-desc">Administrator</span>
+			</div> -->
+			<div class="media-body">
+			  <h6 class="pro-user-name mt-0 mb-0" style="overflow: hidden;text-overflow: ellipsis;white-space: nowrap;">{{ currentUser.username }}</h6>
+			  <span class="pro-user-desc" style="overflow: hidden;text-overflow: ellipsis;white-space: nowrap;text-transform: none;">{{ currentUser.email }}</span>
 			</div>
 			<b-dropdown variant="black" class="align-self-center" toggle-class="p-0">
 				<template v-slot:button-content>
@@ -144,7 +156,8 @@ export default {
 
 				<b-dropdown-divider></b-dropdown-divider>
 
-				<b-dropdown-item href="/logout" class="notify-item">
+				<!-- <b-dropdown-item href="/logout" class="notify-item"> -->
+				<b-dropdown-item @click="logout" class="notify-item">
 					<feather
 						type="log-out"
 						class="icon-dual icon-xs mr-2 align-middle"

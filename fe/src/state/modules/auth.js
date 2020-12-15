@@ -70,21 +70,22 @@ export const actions = {
   // Validates the current user's token and refreshes it
   // with new data from the API.
   validate({ commit, state }) {
-    if (!state.currentUser) return Promise.resolve(null)
+    return state.currentUser
+    // if (!state.currentUser) return Promise.resolve(null)
 
-    return axios
-      .get('/api/session')
-      .then((response) => {
-        const user = response.data
-        commit('SET_CURRENT_USER', user)
-        return user
-      })
-      .catch((error) => {
-        if (error.response && error.response.status === 401) {
-          commit('SET_CURRENT_USER', null)
-        }
-        return null
-      })
+    // return axios
+    //   .get('/api/session')
+    //   .then((response) => {
+    //     const user = response.data
+    //     commit('SET_CURRENT_USER', user)
+    //     return user
+    //   })
+    //   .catch((error) => {
+    //     if (error.response && error.response.status === 401) {
+    //       commit('SET_CURRENT_USER', null)
+    //     }
+    //     return null
+    //   })
   },
 }
 

@@ -1,5 +1,6 @@
 <script>
 // pdfViewer加载+web-highlighter高亮
+import { authComputed } from '@state/helpers'
 import PDFPage from '@components/test/pdfPage'
 import PDFSideBar from '@components/test/pdfSideBar'
 import PDFTools from '@components/test/pdfTools'
@@ -45,6 +46,7 @@ export default {
     }
   },
   computed: {
+    ...authComputed,
     // 判断是否位于顶部
     isTop() {
       return this.scrollTop < 100
