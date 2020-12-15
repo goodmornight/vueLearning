@@ -43,6 +43,8 @@ export default {
       store: null,
       defaultStyle: 'highLight', // 默认高亮样式
       highLightContext: '',      // 高亮文本内容
+      avatarTop: 0,
+      avatarList: new Map()
     }
   },
   computed: {
@@ -84,6 +86,21 @@ export default {
       .on(Highlighter.event.CREATE, ({sources, type}) => {
           log('create -', sources)
           console.log(type)
+          vm.avatarControl(sources[0].id)
+          // console.log(sources[0].id)
+          // console.log(vm.highlighter.getDoms(sources[0].id))
+
+          // let arr = vm.highlighter.getDoms(sources[0].id)
+          // console.log(arr[0])
+          // let ele = arr[0]
+          // vm.avatarTop = ele.offsetTop
+          // let current = ele.offsetParent
+          // while (current !== null){
+          //   vm.avatarTop += (current.offsetTop+current.clientTop)
+          //   current = current.offsetParent
+          // }
+          // console.log(vm.avatarTop)
+
           vm.curID = sources.id
           vm.styleControl(sources)
 
@@ -128,6 +145,37 @@ export default {
           vm.isShowTools = false
           vm.isSelected = false
       })
+    },
+    // 头像位置控制
+    avatarTopControl(ele) {
+
+      let current = ele.offsetParent
+      let avatarTop = ele.offsetTop
+      
+      while (current !== null){
+        avatarTop += (current.offsetTop+current.clientTop)
+        current = current.offsetParent
+      }
+
+      return avatarTop
+    },
+
+    // 头像列表
+    avatarControl(hid) {
+
+      const vm = this
+      let domArr = this.highlighter.getDoms(hid)
+      if(domArr) {
+        let ele = domArr[0]
+        let avatarTop = this.avatarTopControl(ele)
+        this.avatarList.set(hid, avatarTop)
+        // console.log()
+        // this.avatarList.push({
+        //   hid: hid,
+        //   top: avatarTop
+        // })
+      }
+
     },
 
     // 高亮显示控制
@@ -188,7 +236,8 @@ export default {
 
     // 高亮文本
     highLight(className) {
-      console.log('高亮')
+
+      const vm = this
       const selection = window.getSelection()
       const range = selection.getRangeAt(0)
 
@@ -196,6 +245,8 @@ export default {
       // 为选区序列化时的持久化数据生成额外信息
       this.highlighter.hooks.Serialize.RecordInfo.tap(function (start, end, root) {
         return {
+          username: vm.currentUser.username,
+          timestamp: new Date().getTime(),
           className: className
         }
       })
@@ -274,6 +325,13 @@ export default {
 <template>
   <div style="min-height 100%">
 
+    <template>
+      <!-- <div class="right-side-avatars" v-for="item in avatarList" :style="{top:`${item.top}px`}"> -->
+      <div class="right-side-avatars" v-for="[key, value] of avatarList" :style="{top:`${value}px`}">
+        <h6 class="pro-user-name mt-0 mb-0" style="overflow: hidden;text-overflow: ellipsis;white-space: nowrap;">{{ currentUser.username }}</h6>
+      </div>
+    </template>
+    
     <PDFPage
       :url="url"
       v-on="{
@@ -342,6 +400,10 @@ export default {
     padding:0;
     text-align: middle;
     /*scroll-behavior:smooth;*/
+  }
+  .right-side-avatars{
+    position: absolute;
+    left: 400px;
   }
   .container{
     width: 80%;
