@@ -44,7 +44,9 @@ export default {
       defaultStyle: 'highLight', // 默认高亮样式
       highLightContext: '',      // 高亮文本内容
       avatarTop: 0,
-      avatarList: new Map()
+      // avatarList: new Map(),
+      avatarList: [],
+      // avatarList: {},
     }
   },
   computed: {
@@ -168,15 +170,35 @@ export default {
       if(domArr) {
         let ele = domArr[0]
         let avatarTop = this.avatarTopControl(ele)
-        this.avatarList.set(hid, avatarTop)
+        // this.avatarList.set(hid, avatarTop)
         // console.log()
-        // this.avatarList.push({
-        //   hid: hid,
-        //   top: avatarTop
-        // })
+        this.avatarList.push({
+          hid: hid,
+          top: avatarTop
+        })
       }
 
     },
+
+    // avatarControl(hid) {
+
+    //   const vm = this
+    //   let domArr = this.highlighter.getDoms(hid)
+    //   if(domArr) {
+    //     let obj = {}
+    //     let ele = domArr[0]
+    //     let avatarTop = this.avatarTopControl(ele)
+        
+    //     obj[avatarTop] = [hid]
+
+    //     this.$_.merge(vm.avatarList, obj)
+    //     // this.avatarList.push({
+    //     //   hid: hid,
+    //     //   top: avatarTop
+    //     // })
+    //   }
+
+    // },
 
     // 高亮显示控制
     styleControl(sources) {
@@ -326,8 +348,8 @@ export default {
   <div style="min-height 100%">
 
     <template>
-      <!-- <div class="right-side-avatars" v-for="item in avatarList" :style="{top:`${item.top}px`}"> -->
-      <div class="right-side-avatars" v-for="[key, value] of avatarList" :style="{top:`${value}px`}">
+      <div class="right-side-avatars" v-for="item in avatarList" :style="{top:`${item.top}px`}">
+      <!-- <div class="right-side-avatars" v-for="[key, value] of avatarList" :style="{top:`${value}px`}"> -->
         <h6 class="pro-user-name mt-0 mb-0" style="overflow: hidden;text-overflow: ellipsis;white-space: nowrap;">{{ currentUser.username }}</h6>
       </div>
     </template>
